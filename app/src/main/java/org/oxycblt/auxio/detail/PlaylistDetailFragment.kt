@@ -37,6 +37,7 @@ import org.oxycblt.auxio.list.ListFragment
 import org.oxycblt.auxio.list.menu.Menu
 import org.oxycblt.auxio.music.PlaylistDecision
 import org.oxycblt.auxio.music.PlaylistMessage
+import org.oxycblt.auxio.music.SongDecision
 import org.oxycblt.auxio.music.resolve
 import org.oxycblt.auxio.playback.PlaybackDecision
 import org.oxycblt.auxio.playback.formatDurationMs
@@ -118,6 +119,7 @@ class PlaylistDetailFragment :
         collectImmediately(listModel.selected, ::updateSelection)
         collect(musicModel.playlistDecision.flow, ::handlePlaylistDecision)
         collect(musicModel.playlistMessage.flow, ::handlePlaylistMessage)
+        collect(musicModel.songDecision.flow, ::handleSongDecision)
         collectImmediately(
             playbackModel.song,
             playbackModel.parent,
@@ -399,6 +401,18 @@ class PlaylistDetailFragment :
         if (message == null) return
         requireContext().showToast(message.stringRes)
         musicModel.playlistMessage.consume()
+    }
+
+    private fun handleSongDecision(decision: SongDecision?) {
+        if (decision == null) return
+        val directions =
+            when (decision) {
+                is SongDecision.Delete -> {
+                    L.d("Deleting ${decision.song}")
+                    PlaylistDetailFragmentDirections.deleteSong(decision.song.uid)
+                }
+            }
+        findNavController().navigateSafe(directions)
     }
 
     private fun updatePlayback(song: Song?, parent: MusicParent?, isPlaying: Boolean) {

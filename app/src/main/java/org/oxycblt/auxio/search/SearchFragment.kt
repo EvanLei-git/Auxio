@@ -47,6 +47,7 @@ import org.oxycblt.auxio.music.MusicType
 import org.oxycblt.auxio.music.MusicViewModel
 import org.oxycblt.auxio.music.PlaylistDecision
 import org.oxycblt.auxio.music.PlaylistMessage
+import org.oxycblt.auxio.music.SongDecision
 import org.oxycblt.auxio.playback.PlaybackDecision
 import org.oxycblt.auxio.playback.PlaybackViewModel
 import org.oxycblt.auxio.ui.FadingToolbarOffsetListener
@@ -188,6 +189,7 @@ class SearchFragment : ListFragment<Music, FragmentSearchBinding>() {
         collect(listModel.menu.flow, ::handleMenu)
         collect(musicModel.playlistDecision.flow, ::handlePlaylistDecision)
         collect(musicModel.playlistMessage.flow, ::handlePlaylistMessage)
+        collect(musicModel.songDecision.flow, ::handleSongDecision)
         collectImmediately(
             playbackModel.song,
             playbackModel.parent,
@@ -371,6 +373,18 @@ class SearchFragment : ListFragment<Music, FragmentSearchBinding>() {
         if (message == null) return
         requireContext().showToast(message.stringRes)
         musicModel.playlistMessage.consume()
+    }
+
+    private fun handleSongDecision(decision: SongDecision?) {
+        if (decision == null) return
+        val directions =
+            when (decision) {
+                is SongDecision.Delete -> {
+                    L.d("Deleting ${decision.song}")
+                    SearchFragmentDirections.deleteSong(decision.song.uid)
+                }
+            }
+        findNavController().navigateSafe(directions)
     }
 
     private fun updatePlayback(song: Song?, parent: MusicParent?, isPlaying: Boolean) {

@@ -68,6 +68,11 @@ class PlaylistPickerViewModel @Inject constructor(private val musicRepository: M
     val currentPlaylistToDelete: StateFlow<Playlist?>
         get() = _currentPlaylistToDelete
 
+    private val _currentSongToDelete = MutableStateFlow<Song?>(null)
+    /** The current [Song] whose file deletion needs to be confirmed. Null if none yet. */
+    val currentSongToDelete: StateFlow<Song?>
+        get() = _currentSongToDelete
+
     private val _chosenName = MutableStateFlow<ChosenName>(ChosenName.Empty)
     /** The users chosen name for [currentPendingNewPlaylist] or [currentPendingRenamePlaylist]. */
     val chosenName: StateFlow<ChosenName>
@@ -244,6 +249,19 @@ class PlaylistPickerViewModel @Inject constructor(private val musicRepository: M
         _currentPlaylistToDelete.value = musicRepository.library?.findPlaylist(playlistUid)
         if (_currentPlaylistToDelete.value == null) {
             L.w("Given playlist UID to delete was invalid")
+        }
+    }
+
+    /**
+     * Set a [currentSongToDelete] from a [Song] [Music.UID].
+     *
+     * @param songUid The [Music.UID] of the [Song] to delete.
+     */
+    fun setSongToDelete(songUid: Music.UID) {
+        L.d("Opening song $songUid to delete")
+        _currentSongToDelete.value = musicRepository.library?.findSong(songUid)
+        if (_currentSongToDelete.value == null) {
+            L.w("Given song UID to delete was invalid")
         }
     }
 
