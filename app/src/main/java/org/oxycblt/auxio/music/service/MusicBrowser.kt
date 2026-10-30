@@ -183,7 +183,7 @@ private constructor(
                 getChildMediaItems(mediaSessionUID.uid)
             }
             null -> {
-                return null
+                null
             }
         }
     }

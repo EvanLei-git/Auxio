@@ -18,13 +18,12 @@
  
 package org.oxycblt.auxio.playback.decision
 
-import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import org.oxycblt.auxio.databinding.ItemPickerChoiceBinding
 import org.oxycblt.auxio.list.ClickableListListener
 import org.oxycblt.auxio.list.adapter.FlexibleListAdapter
 import org.oxycblt.auxio.list.adapter.SimpleDiffCallback
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.music.resolve
 import org.oxycblt.auxio.util.context
 import org.oxycblt.auxio.util.inflater
@@ -49,14 +48,14 @@ class ArtistPlaybackChoiceAdapter(private val listener: ClickableListListener<Ar
 }
 
 /**
- * A [DialogRecyclerView.ViewHolder] that displays a smaller variant of a typical [Artist] item, for
- * use [ArtistPlaybackChoiceAdapter]. Use [from] to create an instance.
+ * A [RecyclerView.ViewHolder] that displays a smaller variant of a typical [Artist] item, for use
+ * [ArtistPlaybackChoiceAdapter]. Use [from] to create an instance.
  *
  * @author Alexander Capehart (OxygenCobalt)
  */
 class ArtistPlaybackChoiceViewHolder
 private constructor(private val binding: ItemPickerChoiceBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
     /**
      * Bind new data to this instance.
      *
@@ -77,8 +76,10 @@ private constructor(private val binding: ItemPickerChoiceBinding) :
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            ArtistPlaybackChoiceViewHolder(ItemPickerChoiceBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            ArtistPlaybackChoiceViewHolder(
+                ItemPickerChoiceBinding.inflate(parent.context.inflater, parent, false)
+            )
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =

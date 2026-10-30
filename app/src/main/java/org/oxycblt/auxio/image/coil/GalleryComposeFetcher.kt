@@ -88,50 +88,49 @@ private constructor(context: Context, private val data: GalleryCoverCollection, 
         val positions = listOf(p0, p1, p2, p3)
         // first we actually have to aggregate the geometry here so that
         // our overlaps will actually work
-        val tiles =
-            positions.mapIndexed { index, baseRect ->
-                // generate path-tiles for each cover
-                val isTop = index < 2
-                val isLeft = index % 2 == 0
-                val isBottom = !isTop
-                val isRight = !isLeft
+        val tiles = positions.mapIndexed { index, baseRect ->
+            // generate path-tiles for each cover
+            val isTop = index < 2
+            val isLeft = index % 2 == 0
+            val isBottom = !isTop
+            val isRight = !isLeft
 
-                // inset base cover rect to prevent rounded corners from stacking in a way
-                // that leads weird "holes" and is instead more dynamic
-                // todo: refine this so we can do dynamic overlap?
-                val innerRect = RectF(baseRect)
-                innerRect.left += if (isLeft) 0f else gapWidthPx
-                innerRect.top += if (isTop) 0f else gapWidthPx
-                innerRect.right -= if (isRight) 0f else gapWidthPx
-                innerRect.bottom -= if (isBottom) 0f else gapWidthPx
+            // inset base cover rect to prevent rounded corners from stacking in a way
+            // that leads weird "holes" and is instead more dynamic
+            // todo: refine this so we can do dynamic overlap?
+            val innerRect = RectF(baseRect)
+            innerRect.left += if (isLeft) 0f else gapWidthPx
+            innerRect.top += if (isTop) 0f else gapWidthPx
+            innerRect.right -= if (isRight) 0f else gapWidthPx
+            innerRect.bottom -= if (isBottom) 0f else gapWidthPx
 
-                // set up the actual gap path
-                val gapRect = RectF(innerRect)
-                gapRect.inset(-gapWidthPx, -gapWidthPx)
+            // set up the actual gap path
+            val gapRect = RectF(innerRect)
+            gapRect.inset(-gapWidthPx, -gapWidthPx)
 
-                val gapPath =
-                    rounded(
-                        gapRect,
-                        topLeft = if (!isTop && !isLeft) cornerRadiusPx else 0f,
-                        topRight = if (!isTop && !isRight) cornerRadiusPx else 0f,
-                        bottomRight = if (!isBottom && !isRight) cornerRadiusPx else 0f,
-                        bottomLeft = if (!isBottom && !isLeft) cornerRadiusPx else 0f,
-                    )
+            val gapPath =
+                rounded(
+                    gapRect,
+                    topLeft = if (!isTop && !isLeft) cornerRadiusPx else 0f,
+                    topRight = if (!isTop && !isRight) cornerRadiusPx else 0f,
+                    bottomRight = if (!isBottom && !isRight) cornerRadiusPx else 0f,
+                    bottomLeft = if (!isBottom && !isLeft) cornerRadiusPx else 0f,
+                )
 
-                // then the inner mask
-                // adjust corner radii to make up for gap
-                val innerRadius = (cornerRadiusPx - gapWidthPx).coerceAtLeast(0f)
-                val maskPath =
-                    rounded(
-                        innerRect,
-                        topLeft = if (!isTop && !isLeft) innerRadius else 0f,
-                        topRight = if (!isTop && !isRight) innerRadius else 0f,
-                        bottomRight = if (!isBottom && !isRight) innerRadius else 0f,
-                        bottomLeft = if (!isBottom && !isLeft) innerRadius else 0f,
-                    )
+            // then the inner mask
+            // adjust corner radii to make up for gap
+            val innerRadius = (cornerRadiusPx - gapWidthPx).coerceAtLeast(0f)
+            val maskPath =
+                rounded(
+                    innerRect,
+                    topLeft = if (!isTop && !isLeft) innerRadius else 0f,
+                    topRight = if (!isTop && !isRight) innerRadius else 0f,
+                    bottomRight = if (!isBottom && !isRight) innerRadius else 0f,
+                    bottomLeft = if (!isBottom && !isLeft) innerRadius else 0f,
+                )
 
-                TileGeometry(innerRect, gapPath, maskPath)
-            }
+            TileGeometry(innerRect, gapPath, maskPath)
+        }
 
         for ((orderIndex, imageIndex) in zOrder.withIndex()) {
             val bitmap = bitmaps[imageIndex]

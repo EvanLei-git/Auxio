@@ -21,10 +21,10 @@ package org.oxycblt.auxio.list.menu
 import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import org.oxycblt.auxio.databinding.ItemMenuOptionBinding
 import org.oxycblt.auxio.list.ClickableListListener
 import org.oxycblt.auxio.list.adapter.FlexibleListAdapter
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.util.inflater
 
 /**
@@ -44,12 +44,12 @@ class MenuItemAdapter(private val listener: ClickableListListener<MenuItem>) :
 }
 
 /**
- * A [DialogRecyclerView.ViewHolder] that displays a [MenuItem].
+ * A [RecyclerView.ViewHolder] that displays a [MenuItem].
  *
  * @author Alexander Capehart (OxygenCobalt)
  */
 class MenuItemViewHolder private constructor(private val binding: ItemMenuOptionBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
     /**
      * Bind new data to this instance.
      *
@@ -73,7 +73,9 @@ class MenuItemViewHolder private constructor(private val binding: ItemMenuOption
          * @return A new instance.
          */
         fun from(parent: ViewGroup) =
-            MenuItemViewHolder(ItemMenuOptionBinding.inflate(parent.context.inflater))
+            MenuItemViewHolder(
+                ItemMenuOptionBinding.inflate(parent.context.inflater, parent, false)
+            )
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =

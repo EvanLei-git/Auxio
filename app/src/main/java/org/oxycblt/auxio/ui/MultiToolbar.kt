@@ -56,10 +56,11 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
         val index = children.indexOfFirst { it.id == viewId }
         if (index == currentlyVisible) return false
         L.d("Switching toolbar visibility from $currentlyVisible -> $index")
-        return animateToolbarsVisibility(currentlyVisible, index).also { currentlyVisible = index }
+        animateToolbarsVisibility(currentlyVisible, index).also { currentlyVisible = index }
+        return true
     }
 
-    private fun animateToolbarsVisibility(from: Int, to: Int): Boolean {
+    private fun animateToolbarsVisibility(from: Int, to: Int) {
         // Set up the target transitions for both the inner and selection toolbars.
         L.d("Changing toolbar visibility $from -> 0f, $to -> 1f")
         inAnimators?.forEach { it.cancel() }
@@ -82,7 +83,5 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
                 }
             }
         outAnimators = listOf(outScaleAnimation, outAlphaAnimation)
-
-        return true
     }
 }

@@ -239,31 +239,30 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
         val playbackIndicator = (playbackIndicator ?: return).view
         val iconSize = iconSize ?: (measuredWidth / 2)
         playbackIndicator.apply {
-            imageMatrix =
-                indicatorMatrix.apply {
-                    reset()
-                    drawable?.let { drawable ->
-                        // First scale the icon up to the desired size.
-                        indicatorMatrixSrc.set(
-                            0f,
-                            0f,
-                            drawable.intrinsicWidth.toFloat(),
-                            drawable.intrinsicHeight.toFloat(),
-                        )
-                        indicatorMatrixDst.set(0f, 0f, iconSize.toFloat(), iconSize.toFloat())
-                        indicatorMatrix.setRectToRect(
-                            indicatorMatrixSrc,
-                            indicatorMatrixDst,
-                            Matrix.ScaleToFit.CENTER,
-                        )
+            imageMatrix = indicatorMatrix.apply {
+                reset()
+                drawable?.let { drawable ->
+                    // First scale the icon up to the desired size.
+                    indicatorMatrixSrc.set(
+                        0f,
+                        0f,
+                        drawable.intrinsicWidth.toFloat(),
+                        drawable.intrinsicHeight.toFloat(),
+                    )
+                    indicatorMatrixDst.set(0f, 0f, iconSize.toFloat(), iconSize.toFloat())
+                    indicatorMatrix.setRectToRect(
+                        indicatorMatrixSrc,
+                        indicatorMatrixDst,
+                        Matrix.ScaleToFit.CENTER,
+                    )
 
-                        // Then actually center it into the icon.
-                        indicatorMatrix.postTranslate(
-                            (measuredWidth - iconSize) / 2f,
-                            (measuredHeight - iconSize) / 2f,
-                        )
-                    }
+                    // Then actually center it into the icon.
+                    indicatorMatrix.postTranslate(
+                        (measuredWidth - iconSize) / 2f,
+                        (measuredHeight - iconSize) / 2f,
+                    )
                 }
+            }
         }
     }
 

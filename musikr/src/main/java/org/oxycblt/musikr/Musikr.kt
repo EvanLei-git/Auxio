@@ -19,7 +19,6 @@
 package org.oxycblt.musikr
 
 import android.content.Context
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -115,7 +114,6 @@ private class MusikrImpl(
 ) : Musikr {
     override suspend fun run(onProgress: suspend (IndexingProgress) -> Unit) = coroutineScope {
         onProgress(IndexingProgress.Songs(0, 0))
-        val start = System.currentTimeMillis()
         var explored = 0
         var loaded = 0
         val exploredChannel = Channel<Explored>(Channel.UNLIMITED)
@@ -143,7 +141,6 @@ private class MusikrImpl(
             }
         val library = evaluateStep.evaluate(trackedExtractedChannel)
         merge(exploredTask, extractedTask, trackedExploredTask, trackedExtractedTask).await()
-        Log.d("Musikr", "Indexing took ${System.currentTimeMillis() - start}ms")
         LibraryResultImpl(config, library)
     }
 }

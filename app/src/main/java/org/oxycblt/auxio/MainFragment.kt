@@ -18,6 +18,7 @@
  
 package org.oxycblt.auxio
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewTreeObserver
@@ -107,6 +108,7 @@ class MainFragment :
 
     override fun onCreateBinding(inflater: LayoutInflater) = FragmentMainBinding.inflate(inflater)
 
+    @SuppressLint("PrivateResource")
     override fun onBindingCreated(binding: FragmentMainBinding, savedInstanceState: Bundle?) {
         super.onBindingCreated(binding, savedInstanceState)
 
@@ -761,7 +763,7 @@ class MainFragment :
         }
     }
 
-    private inner class SelectionBackPressedCallback(private val listModel: ListViewModel) :
+    private class SelectionBackPressedCallback(private val listModel: ListViewModel) :
         OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             if (listModel.dropSelection()) {

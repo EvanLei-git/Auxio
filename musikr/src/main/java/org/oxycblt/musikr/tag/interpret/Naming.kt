@@ -91,7 +91,7 @@ private data class IntelligentKnownName(override val raw: String, override val s
                 // Replace punctuation with spaces to create token boundaries, improving
                 // sorting of names like "15-9" vs "15-10".
                 .replace(punctRegex, " ")
-                .let { if (it.isBlank()) name else it }
+                .let { it.ifBlank { name } }
                 .run {
                     // Strip any english articles like "the" or "an" from the start, as music
                     // sorting should ignore such when possible.

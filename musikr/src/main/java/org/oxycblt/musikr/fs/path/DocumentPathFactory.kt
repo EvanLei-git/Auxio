@@ -22,6 +22,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
+import androidx.core.net.toUri
 import java.io.File
 import org.oxycblt.musikr.fs.Components
 import org.oxycblt.musikr.fs.Path
@@ -129,8 +130,8 @@ private class DocumentPathFactoryImpl(
 
         private val POSSIBLE_CONTENT_URI_PREFIXES =
             arrayOf(
-                Uri.parse("content://downloads/public_downloads"),
-                Uri.parse("content://downloads/my_downloads"),
+                "content://downloads/public_downloads".toUri(),
+                "content://downloads/my_downloads".toUri(),
             )
     }
 }

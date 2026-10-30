@@ -19,6 +19,7 @@
 package org.oxycblt.auxio.home
 
 import android.animation.ArgbEvaluator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Canvas
@@ -33,6 +34,7 @@ import android.util.AttributeSet
 import android.widget.TextView
 import androidx.annotation.AttrRes
 import androidx.annotation.FloatRange
+import androidx.core.graphics.withRotation
 import androidx.core.os.BundleCompat
 import androidx.core.view.setMargins
 import androidx.core.view.updateLayoutParams
@@ -66,6 +68,7 @@ import org.oxycblt.auxio.util.getDimenPixels
  *
  * @author Hai Zhang, Alexander Capehart (OxygenCobalt)
  */
+@SuppressLint("PrivateResource")
 class ThemedSpeedDialView : SpeedDialView {
     private var mainFabAnimation: MainFabAnimation? = null
     private val spacingSmall = context.getDimenPixels(R.dimen.spacing_small)
@@ -106,19 +109,12 @@ class ThemedSpeedDialView : SpeedDialView {
         }
         val context = context
         mainFabClosedBackgroundColor =
-            context
-                .getAttrColorCompat(com.google.android.material.R.attr.colorPrimaryContainer)
-                .defaultColor
+            context.getAttrColorCompat(MR.attr.colorPrimaryContainer).defaultColor
         mainFabClosedIconColor =
-            context
-                .getAttrColorCompat(com.google.android.material.R.attr.colorOnPrimaryContainer)
-                .defaultColor
+            context.getAttrColorCompat(MR.attr.colorOnPrimaryContainer).defaultColor
         mainFabOpenedBackgroundColor =
             context.getAttrColorCompat(androidx.appcompat.R.attr.colorPrimary).defaultColor
-        mainFabOpenedIconColor =
-            context
-                .getAttrColorCompat(com.google.android.material.R.attr.colorOnPrimary)
-                .defaultColor
+        mainFabOpenedIconColor = context.getAttrColorCompat(MR.attr.colorOnPrimary).defaultColor
 
         // Always use our own animation to fix the library issue that ripple is rotated as well.
         mainFabAnimationRotateAngle = 0f
@@ -226,8 +222,7 @@ class ThemedSpeedDialView : SpeedDialView {
 
         val overlayLayout = overlayLayout
         if (overlayLayout != null) {
-            val surfaceColor =
-                context.getAttrColorCompat(com.google.android.material.R.attr.colorSurface)
+            val surfaceColor = context.getAttrColorCompat(MR.attr.colorSurface)
             val overlayColor = surfaceColor.defaultColor.withModulatedAlpha(0.87f)
             overlayLayout.setBackgroundColor(overlayColor)
         }
@@ -249,13 +244,10 @@ class ThemedSpeedDialView : SpeedDialView {
     ): FabWithLabelView? {
         val context = context
         val fabImageTintColor = context.getAttrColorCompat(androidx.appcompat.R.attr.colorPrimary)
-        val fabBackgroundColor =
-            context.getAttrColorCompat(com.google.android.material.R.attr.colorSurface)
+        val fabBackgroundColor = context.getAttrColorCompat(MR.attr.colorSurface)
         val labelColor = context.getAttrColorCompat(android.R.attr.textColorSecondary)
-        val labelBackgroundColor =
-            context.getAttrColorCompat(com.google.android.material.R.attr.colorSurface)
-        val labelElevation =
-            context.getDimen(com.google.android.material.R.dimen.m3_card_elevated_elevation)
+        val labelBackgroundColor = context.getAttrColorCompat(MR.attr.colorSurface)
+        val labelElevation = context.getDimen(MR.dimen.m3_card_elevated_elevation)
         val cornerRadius = context.getDimenPixels(R.dimen.spacing_medium)
         val actionItem =
             SpeedDialActionItem.Builder(
@@ -304,9 +296,7 @@ class ThemedSpeedDialView : SpeedDialView {
                 (getChildAt(0) as TextView).apply {
                     TextViewCompat.setTextAppearance(
                         this,
-                        context.getAttrResourceId(
-                            com.google.android.material.R.attr.textAppearanceLabelLargeEmphasized
-                        ),
+                        context.getAttrResourceId(MR.attr.textAppearanceLabelLargeEmphasized),
                     )
                 }
             }
@@ -397,10 +387,9 @@ private class RotatingDrawable(drawable: Drawable) : Drawable(), Drawable.Callba
             return
         }
 
-        val saveCount = canvas.save()
-        canvas.rotate(rotationDegrees, bounds.exactCenterX(), bounds.exactCenterY())
-        wrappedDrawable.draw(canvas)
-        canvas.restoreToCount(saveCount)
+        canvas.withRotation(rotationDegrees, bounds.exactCenterX(), bounds.exactCenterY()) {
+            wrappedDrawable.draw(canvas)
+        }
     }
 
     override fun onBoundsChange(bounds: Rect) {

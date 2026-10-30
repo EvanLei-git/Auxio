@@ -24,6 +24,7 @@ import android.util.AttributeSet
 import android.widget.ImageView
 import androidx.core.content.res.getResourceIdOrThrow
 import androidx.core.content.res.getTextArrayOrThrow
+import androidx.core.content.withStyledAttributes
 import androidx.preference.DialogPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
@@ -49,44 +50,42 @@ constructor(
     defStyleRes: Int = 0,
 ) : DialogPreference(context, attrs, defStyleAttr, defStyleRes) {
     /** The names of each entry. */
-    val entries: Array<CharSequence>
+    var entries: Array<CharSequence> = arrayOf()
     /** The corresponding integer values for each entry. */
-    val values: IntArray
+    var values: IntArray = intArrayOf()
 
     private var entryIcons: TypedArray? = null
     private var offValue: Int? = -1
     private var currentValue: Int? = null
 
     init {
-        val prefAttrs =
-            context.obtainStyledAttributes(
-                attrs,
-                R.styleable.IntListPreference,
-                defStyleAttr,
-                defStyleRes,
-            )
+        context.withStyledAttributes(
+            attrs,
+            R.styleable.IntListPreference,
+            defStyleAttr,
+            defStyleRes,
+        ) {
 
-        // Can't depend on ListPreference due to it working with strings we have to instead
-        // define our own attributes for entries/values.
-        entries = prefAttrs.getTextArrayOrThrow(R.styleable.IntListPreference_entries)
-        values =
-            context.resources.getIntArray(
-                prefAttrs.getResourceIdOrThrow(R.styleable.IntListPreference_entryValues)
-            )
+            // Can't depend on ListPreference due to it working with strings we have to instead
+            // define our own attributes for entries/values.
+            entries = getTextArrayOrThrow(R.styleable.IntListPreference_entries)
+            values =
+                context.resources.getIntArray(
+                    getResourceIdOrThrow(R.styleable.IntListPreference_entryValues)
+                )
 
-        // entryIcons defines an additional set of icons to use for each entry.
-        val iconsId = prefAttrs.getResourceId(R.styleable.IntListPreference_entryIcons, -1)
-        if (iconsId > -1) {
-            entryIcons = context.resources.obtainTypedArray(iconsId)
+            // entryIcons defines an additional set of icons to use for each entry.
+            val iconsId = getResourceId(R.styleable.IntListPreference_entryIcons, -1)
+            if (iconsId > -1) {
+                entryIcons = context.resources.obtainTypedArray(iconsId)
+            }
+
+            // offValue defines an value in which the preference should be disabled.
+            val offValueId = getResourceId(R.styleable.IntListPreference_offValue, -1)
+            if (offValueId > -1) {
+                offValue = context.getInteger(offValueId)
+            }
         }
-
-        // offValue defines an value in which the preference should be disabled.
-        val offValueId = prefAttrs.getResourceId(R.styleable.IntListPreference_offValue, -1)
-        if (offValueId > -1) {
-            offValue = context.getInteger(offValueId)
-        }
-
-        prefAttrs.recycle()
 
         summaryProvider = IntListSummaryProvider()
     }

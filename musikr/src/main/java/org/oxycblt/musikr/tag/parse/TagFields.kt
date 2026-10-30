@@ -316,6 +316,6 @@ private fun Metadata.parseId3v23Date(): Date? {
         }
     } else {
         // Unable to parse month/day, just return a year
-        return Date.from(year)
+        Date.from(year)
     }
 }

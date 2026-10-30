@@ -18,13 +18,12 @@
  
 package org.oxycblt.auxio.list.sort
 
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import org.oxycblt.auxio.databinding.ItemSortModeBinding
 import org.oxycblt.auxio.list.ClickableListListener
 import org.oxycblt.auxio.list.adapter.FlexibleListAdapter
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.util.context
 import org.oxycblt.auxio.util.inflater
 
@@ -78,12 +77,12 @@ class SortModeAdapter(private val listener: ClickableListListener<Sort.Mode>) :
 }
 
 /**
- * A [DialogRecyclerView.ViewHolder] that displays a [Sort.Mode].
+ * A [RecyclerView.ViewHolder] that displays a [Sort.Mode].
  *
  * @author Alexander Capehart (OxygenCobalt)
  */
 class SortModeViewHolder private constructor(private val binding: ItemSortModeBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
     /**
      * Bind new data to this instance.
      *
@@ -105,8 +104,8 @@ class SortModeViewHolder private constructor(private val binding: ItemSortModeBi
     }
 
     companion object {
-        fun from(parent: View) =
-            SortModeViewHolder(ItemSortModeBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            SortModeViewHolder(ItemSortModeBinding.inflate(parent.context.inflater, parent, false))
 
         val DIFF_CALLBACK =
             object : DiffUtil.ItemCallback<Sort.Mode>() {

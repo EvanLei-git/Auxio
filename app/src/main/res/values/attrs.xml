@@ -17,7 +17,7 @@
         <attr name="enableSelectionBadge" format="boolean" />
     </declare-styleable>
 
-    <declare-styleable name="PlayerFastSeekOverlay">
+    <declare-styleable name="StepperOverlay">
         <attr name="shapeAppearance" />
     </declare-styleable>
 

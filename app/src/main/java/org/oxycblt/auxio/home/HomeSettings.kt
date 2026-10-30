@@ -75,13 +75,11 @@ class HomeSettingsImpl @Inject constructor(@ApplicationContext context: Context)
             val oldTabs =
                 Tab.fromIntCode(sharedPreferences.getInt(OLD_KEY_LIB_TABS, Tab.SEQUENCE_DEFAULT))
                     ?: unlikelyToBeNull(Tab.fromIntCode(Tab.SEQUENCE_DEFAULT))
-            L.d("Old tabs: $oldTabs")
 
             // The playlist tab is now parsed, but it needs to be made visible.
             val playlistIndex = oldTabs.indexOfFirst { it.type == MusicType.PLAYLISTS }
             check(playlistIndex > -1) // This should exist, otherwise we are in big trouble
             oldTabs[playlistIndex] = Tab.Visible(MusicType.PLAYLISTS)
-            L.d("New tabs: $oldTabs")
 
             sharedPreferences.edit {
                 putInt(getString(R.string.set_key_home_tabs), Tab.toIntCode(oldTabs))

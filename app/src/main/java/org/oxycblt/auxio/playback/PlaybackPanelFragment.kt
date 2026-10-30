@@ -22,6 +22,7 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -34,6 +35,7 @@ import androidx.dynamicanimation.animation.SpringForce
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.FragmentPlaybackPanelBinding
 import org.oxycblt.auxio.detail.DetailViewModel
@@ -43,20 +45,20 @@ import org.oxycblt.auxio.music.resolveNames
 import org.oxycblt.auxio.playback.queue.QueueViewModel
 import org.oxycblt.auxio.playback.state.RepeatMode
 import org.oxycblt.auxio.playback.ui.StyledSeekBar
+import org.oxycblt.auxio.playback.ui.stepper.Direction
+import org.oxycblt.auxio.playback.ui.stepper.StepperOverlay
 import org.oxycblt.auxio.playback.ui.swiper.CarouselTransformer
 import org.oxycblt.auxio.playback.ui.swiper.CoverPagerAdapter
 import org.oxycblt.auxio.playback.ui.swiper.UserAwarePagerCallback
-import org.oxycblt.auxio.playback.ui.stepper.Direction
-import org.oxycblt.auxio.playback.ui.stepper.PlayerFastSeekOverlay
 import org.oxycblt.auxio.ui.ViewBindingFragment
 import org.oxycblt.auxio.util.collectImmediately
 import org.oxycblt.auxio.util.dampen
 import org.oxycblt.auxio.util.recycler
 import org.oxycblt.auxio.util.showToast
+import org.oxycblt.auxio.util.smoothScrollByPageTo
 import org.oxycblt.auxio.util.systemBarInsetsCompat
 import org.oxycblt.musikr.MusicParent
 import org.oxycblt.musikr.Song
-import kotlin.math.abs
 import timber.log.Timber as L
 
 /**
@@ -72,15 +74,14 @@ class PlaybackPanelFragment :
     ViewBindingFragment<FragmentPlaybackPanelBinding>(),
     Toolbar.OnMenuItemClickListener,
     StyledSeekBar.Listener,
-    PlayerFastSeekOverlay.PerformListener {
-        private val coverPagerAdapter = CoverPagerAdapter(this)
+    StepperOverlay.Listener {
+    private val coverPagerAdapter = CoverPagerAdapter(this)
     private val playbackModel: PlaybackViewModel by activityViewModels()
     private val detailModel: DetailViewModel by activityViewModels()
     private val listModel: ListViewModel by activityViewModels()
     private val queueModel: QueueViewModel by viewModels()
     private var equalizerLauncher: ActivityResultLauncher<Intent>? = null
     private var userAwarePagerCallback: UserAwarePagerCallback? = null
-    private var currentPagerPosition = 0
 
     override fun onCreateBinding(inflater: LayoutInflater) =
         FragmentPlaybackPanelBinding.inflate(inflater)
@@ -111,12 +112,16 @@ class PlaybackPanelFragment :
         }
 
         binding.playbackPager?.apply {
+            // intentional LTR override since thepager is a chronological element
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
             adapter = coverPagerAdapter
-            userAwarePagerCallback = UserAwarePagerCallback(this) {
-                // Posting the queue goto command prevents the seekbar pos from desyncing
-                // from the song's duration, which creates a visual flicker in the seekbar.
-                post { queueModel.goto(it) }
-            }.also { it.attach() }
+            userAwarePagerCallback =
+                UserAwarePagerCallback(this) {
+                        // Posting the queue goto command prevents the seekbar pos from desyncing
+                        // from the song's duration, which creates a visual flicker in the seekbar.
+                        post { queueModel.goto(it) }
+                    }
+                    .also { it.attach() }
             setPageTransformer(CarouselTransformer())
             recycler().apply {
                 // Make it possible to collapse the bottom sheet from the ViewPager's touch area.
@@ -179,39 +184,39 @@ class PlaybackPanelFragment :
     }
 
     // FIXME: Old code!! Maybe not necessary anymore?
-//    override fun onStart() {
-//        super.onStart()
-//        playbackModel.song.value?.let { requireBinding().playbackCover.bind(it) }
-//        requireBinding().root.viewTreeObserver.addOnGlobalLayoutListener(this)
-//    }
+    //    override fun onStart() {
+    //        super.onStart()
+    //        playbackModel.song.value?.let { requireBinding().playbackCover.bind(it) }
+    //        requireBinding().root.viewTreeObserver.addOnGlobalLayoutListener(this)
+    //    }
 
-//    override fun onStop() {
-//        super.onStop()
-//        requireBinding().root.viewTreeObserver.removeOnGlobalLayoutListener(this)
-//    }
+    //    override fun onStop() {
+    //        super.onStop()
+    //        requireBinding().root.viewTreeObserver.removeOnGlobalLayoutListener(this)
+    //    }
 
-//    override fun onGlobalLayout() {
-//        if (binding == null || lastCoverWidth < 0) {
-//            return
-//        }
-        // Hacky workaround for cover radius not being preserved in between sizing changes
-        // (i.e split screen or landscape mode)
-        // For some reason ConstraintLayout does several passes on 1:1 elements that causes their
-        // size to radically change, so we wait until it stabilizes and then force an image
-        // reload if needed. Optimistically this is a no-op from coil caching, but when the cover
-        // did accidentally load the wrong image (with weird corner radius intended for bigger
-        // covers) we can force it to reload.
-        // If this breaks, it's fine since we also started a load as we normally did w/state
-        // updates, so the cover will not break.
-//        val binding = requireBinding()
-//        val coverWidth = binding.playbackCover.width
-//        if (lastCoverWidth != coverWidth) {
-//            lastCoverWidth = coverWidth
-//        } else {
-//            playbackModel.song.value?.let { binding.playbackCover.bind(it) }
-//            lastCoverWidth = -1
-//        }
-//    }
+    //    override fun onGlobalLayout() {
+    //        if (binding == null || lastCoverWidth < 0) {
+    //            return
+    //        }
+    // Hacky workaround for cover radius not being preserved in between sizing changes
+    // (i.e split screen or landscape mode)
+    // For some reason ConstraintLayout does several passes on 1:1 elements that causes their
+    // size to radically change, so we wait until it stabilizes and then force an image
+    // reload if needed. Optimistically this is a no-op from coil caching, but when the cover
+    // did accidentally load the wrong image (with weird corner radius intended for bigger
+    // covers) we can force it to reload.
+    // If this breaks, it's fine since we also started a load as we normally did w/state
+    // updates, so the cover will not break.
+    //        val binding = requireBinding()
+    //        val coverWidth = binding.playbackCover.width
+    //        if (lastCoverWidth != coverWidth) {
+    //            lastCoverWidth = coverWidth
+    //        } else {
+    //            playbackModel.song.value?.let { binding.playbackCover.bind(it) }
+    //            lastCoverWidth = -1
+    //        }
+    //    }
 
     override fun onDestroyBinding(binding: FragmentPlaybackPanelBinding) {
         equalizerLauncher = null
@@ -294,7 +299,50 @@ class PlaybackPanelFragment :
     }
 
     private fun updatePager(queue: PagerQueue) {
-        val binding = requireBinding()
+        // Right now there's easily 140ms of frame skipping when going next/prev. This is primarily
+        // the fault of specifically the nested bottom sheet UI setup, which is intractable to
+        // optimize. If I don't do multiple remeasures/relayouts on every slightest state
+        // instability
+        // I will suddenly encounter insane issues where the sheet fails to measure, appears below
+        // the sidebar, flies away, not changing with ui scale, etc, often only on third-party OEM
+        // ROMs that randomly mangle  SDK APIs and the SystemUI chrome for no reason.
+        //
+        // Historically this was not an issue, as I did not animate next/prev. Now I do, and it's
+        // highly noticeable. So at least for plain next/prev I have to hack around it, do not
+        // execute any transition until the state has fully adjudicated and laid out the UI. It's
+        // not effective for swiping but there's nothing I can do there.
+        //
+        // Eventually one day Claude Fable 6.7 will probably be able to figure out that you need to
+        // reflect into System.FoobaCrumbo::beegieConnector(GoolaUtils.PlubBud) and call it
+        // specifically with 0x189B31FA alongside disabling the AndroidX Helpo SuperCharge by
+        // manually clobbering `BottomSheetM2InternalBoogieCompat::scrimbloManager` to null for it
+        // to not actually randomly mangle the sheets and do it in 1 clean layout, but for now I
+        // must do this to keep my sanity.
+        //
+        // Actual snippet here was codex, just cleaned & adapted it / cognitive ownership
+        requireBinding().playbackPager.apply {
+            if (!isAttachedToWindow) {
+                post { updatePagerImpl(queue) }
+                return
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isHardwareAccelerated) {
+                // New version using post-Q frame hooks
+                viewTreeObserver.registerFrameCommitCallback {
+                    post { postOnAnimation { updatePagerImpl(queue) } }
+                }
+                postInvalidateOnAnimation()
+            } else {
+                // Let current layout happen, then wait for the next to conclude
+                postOnAnimation { postOnAnimation { updatePagerImpl(queue) } }
+            }
+        }
+    }
+
+    private fun updatePagerImpl(queue: PagerQueue) {
+        // Android insanity means this may be executed after view destruction
+        // but only on some devices.
+        val binding = binding ?: return
 
         val command = playbackModel.pagerCommand.consume()
         if (command == null) {
@@ -323,7 +371,11 @@ class PlaybackPanelFragment :
                 // user scroll, carry on
                 return
             }
-            binding.playbackPager.setCurrentItem(command.scroll, command.update == null && abs(delta) == 1)
+            if (command.update == null && abs(delta) == 1) {
+                binding.playbackPager.smoothScrollByPageTo(command.scroll)
+            } else {
+                binding.playbackPager.setCurrentItem(command.scroll, false)
+            }
         }
     }
 
@@ -344,9 +396,5 @@ class PlaybackPanelFragment :
             Direction.FORWARDS -> playbackModel.stepForward()
             Direction.BACKWARDS -> playbackModel.stepBackwards()
         }
-    }
-
-    private companion object {
-
     }
 }

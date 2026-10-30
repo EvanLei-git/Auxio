@@ -19,13 +19,11 @@
 package org.oxycblt.auxio.home.tabs
 
 import android.annotation.SuppressLint
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.ItemTabBinding
 import org.oxycblt.auxio.list.EditClickListListener
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.music.MusicType
 import org.oxycblt.auxio.util.inflater
 import timber.log.Timber as L
@@ -98,7 +96,7 @@ class TabAdapter(private val listener: EditClickListListener<Tab>) :
  * @author Alexander Capehart (OxygenCobalt)
  */
 class TabViewHolder private constructor(private val binding: ItemTabBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
     /**
      * Bind new data to this instance.
      *
@@ -133,6 +131,7 @@ class TabViewHolder private constructor(private val binding: ItemTabBinding) :
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) = TabViewHolder(ItemTabBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            TabViewHolder(ItemTabBinding.inflate(parent.context.inflater, parent, false))
     }
 }

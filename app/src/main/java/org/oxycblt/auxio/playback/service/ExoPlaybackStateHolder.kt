@@ -40,6 +40,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -135,10 +136,10 @@ class ExoPlaybackStateHolder(
         get() = player.audioSessionId
 
     override fun resolveQueue(): RawQueue {
-        val library =
-            musicRepository.library
-                // No library, cannot do anything.
-                ?: return RawQueue(emptyList(), emptyList(), 0)
+        if (musicRepository.library == null) {
+            // No library, cannot do anything.
+            return RawQueue(emptyList(), emptyList(), 0)
+        }
         val heap = (0 until player.mediaItemCount).map { player.getMediaItemAt(it) }
         val shuffledMapping =
             if (player.shuffleModeEnabled) {
@@ -500,6 +501,7 @@ class ExoPlaybackStateHolder(
 
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
             playbackManager.ack(this, StateAck.IndexMoved)
+            deferSave()
         }
     }
 
@@ -573,7 +575,7 @@ class ExoPlaybackStateHolder(
     private fun deferSave() {
         saveJob {
             L.d("Waiting for save buffer")
-            delay(SAVE_BUFFER)
+            delay(SAVE_BUFFER.milliseconds)
             yield()
             L.d("Committing saved state")
             if (sessionOngoing) {

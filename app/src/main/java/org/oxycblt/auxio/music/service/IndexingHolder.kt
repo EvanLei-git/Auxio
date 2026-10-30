@@ -135,8 +135,9 @@ private constructor(
         // Cancel the previous music loading job.
         currentIndexJob?.cancel()
         // Start a new music loading job on a co-routine.
-        currentIndexJob =
-            indexScope.launch { musicRepository.index(this@IndexingHolder, withCache) }
+        currentIndexJob = indexScope.launch {
+            musicRepository.index(this@IndexingHolder, withCache)
+        }
     }
 
     override fun onIndexingStateChanged() {

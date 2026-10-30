@@ -34,14 +34,15 @@ import org.oxycblt.musikr.tag.Date
 fun CoroutineScope.tryAsync(
     context: CoroutineContext,
     block: suspend () -> Unit,
-): Deferred<Result<Unit>> = async {
-    try {
-        block()
-        Result.success(Unit)
-    } catch (e: Throwable) {
-        Result.failure(e)
+): Deferred<Result<Unit>> =
+    async(context = context) {
+        try {
+            block()
+            Result.success(Unit)
+        } catch (e: Throwable) {
+            Result.failure(e)
+        }
     }
-}
 
 fun <T> CoroutineScope.tryAsyncWith(
     channel: Channel<T>,
@@ -70,7 +71,6 @@ fun <T, R> CoroutineScope.map(
             block(item)?.let { output.send(it) }
         }
         output.close()
-        Unit
     }
 }
 

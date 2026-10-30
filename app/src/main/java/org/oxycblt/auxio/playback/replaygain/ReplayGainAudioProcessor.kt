@@ -23,6 +23,7 @@ import androidx.media3.common.Format
 import androidx.media3.common.Player
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.BaseAudioProcessor
+import androidx.media3.common.util.UnstableApi
 import java.nio.ByteBuffer
 import javax.inject.Inject
 import kotlin.math.pow
@@ -44,6 +45,7 @@ import timber.log.Timber as L
  *
  * @author Alexander Capehart (OxygenCobalt)
  */
+@OptIn(markerClass = [UnstableApi::class])
 class ReplayGainAudioProcessor
 @Inject
 constructor(

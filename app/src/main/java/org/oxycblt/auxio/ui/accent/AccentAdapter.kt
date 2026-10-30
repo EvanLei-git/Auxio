@@ -19,7 +19,6 @@
 package org.oxycblt.auxio.ui.accent
 
 import android.R as SR
-import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.TooltipCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -133,7 +132,7 @@ class AccentViewHolder private constructor(private val binding: ItemAccentBindin
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            AccentViewHolder(ItemAccentBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            AccentViewHolder(ItemAccentBinding.inflate(parent.context.inflater, parent, false))
     }
 }

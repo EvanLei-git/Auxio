@@ -43,7 +43,7 @@ interface CoverIdentifier {
     }
 }
 
-private class MD5CoverIdentifier() : CoverIdentifier {
+private class MD5CoverIdentifier : CoverIdentifier {
     @OptIn(ExperimentalStdlibApi::class)
     override suspend fun identify(data: ByteArray): String {
         val digest =

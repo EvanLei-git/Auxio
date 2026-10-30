@@ -21,6 +21,7 @@ package org.oxycblt.auxio.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,47 +70,35 @@ constructor(
     private val playbackSettings: PlaybackSettings,
     detailGeneratorFactory: DetailGenerator.Factory,
 ) : ViewModel(), DetailGenerator.Invalidator {
-    private val _toShow = MutableEvent<Show>()
-
     /**
      * A [Show] command that is awaiting a view capable of responding to it. Null if none currently.
      */
     val toShow: Event<Show>
-        get() = _toShow
+        field = MutableEvent<Show>()
 
     // --- SONG ---
 
-    private val _currentSong = MutableStateFlow<Song?>(null)
-
     /** The current [Song] to display. Null if there is nothing to show. */
     val currentSong: StateFlow<Song?>
-        get() = _currentSong
-
-    private val _currentSongProperties = MutableStateFlow<List<SongProperty>>(listOf())
+        field = MutableStateFlow<Song?>(null)
 
     /** The current properties of [currentSong]. Empty if nothing to show. */
     val currentSongProperties: StateFlow<List<SongProperty>>
-        get() = _currentSongProperties
+        field = MutableStateFlow<List<SongProperty>>(listOf())
 
     // --- ALBUM ---
 
-    private val _currentAlbum = MutableStateFlow<Album?>(null)
-
     /** The current [Album] to display. Null if there is nothing to show. */
     val currentAlbum: StateFlow<Album?>
-        get() = _currentAlbum
-
-    private val _albumSongList = MutableStateFlow(listOf<Item>())
+        field = MutableStateFlow<Album?>(null)
 
     /** The current list data derived from [currentAlbum]. */
     val albumSongList: StateFlow<List<Item>>
-        get() = _albumSongList
-
-    private val _albumSongInstructions = MutableEvent<UpdateInstructions>()
+        field = MutableStateFlow(listOf<Item>())
 
     /** Instructions for updating [albumSongList] in the UI. */
     val albumSongInstructions: Event<UpdateInstructions>
-        get() = _albumSongInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [Song]s in [albumSongList]. */
     val albumSongSort: Sort
@@ -121,22 +110,18 @@ constructor(
 
     // --- ARTIST ---
 
-    private val _currentArtist = MutableStateFlow<Artist?>(null)
-
     /** The current [Artist] to display. Null if there is nothing to show. */
     val currentArtist: StateFlow<Artist?>
-        get() = _currentArtist
+        field = MutableStateFlow<Artist?>(null)
 
     private val _artistSongList = MutableStateFlow(listOf<Item>())
 
     /** The current list derived from [currentArtist]. */
     val artistSongList: StateFlow<List<Item>> = _artistSongList
 
-    private val _artistSongInstructions = MutableEvent<UpdateInstructions>()
-
     /** Instructions for updating [artistSongList] in the UI. */
     val artistSongInstructions: Event<UpdateInstructions>
-        get() = _artistSongInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [Song]s in [artistSongList]. */
     val artistSongSort: Sort
@@ -148,22 +133,18 @@ constructor(
 
     // --- GENRE ---
 
-    private val _currentGenre = MutableStateFlow<Genre?>(null)
-
     /** The current [Genre] to display. Null if there is nothing to show. */
     val currentGenre: StateFlow<Genre?>
-        get() = _currentGenre
+        field = MutableStateFlow<Genre?>(null)
 
     private val _genreSongList = MutableStateFlow(listOf<Item>())
 
     /** The current list data derived from [currentGenre]. */
     val genreSongList: StateFlow<List<Item>> = _genreSongList
 
-    private val _genreSongInstructions = MutableEvent<UpdateInstructions>()
-
     /** Instructions for updating [artistSongList] in the UI. */
     val genreSongInstructions: Event<UpdateInstructions>
-        get() = _genreSongInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [Song]s in [genreSongList]. */
     val genreSongSort: Sort
@@ -175,31 +156,25 @@ constructor(
 
     // --- PLAYLIST ---
 
-    private val _currentPlaylist = MutableStateFlow<Playlist?>(null)
-
     /** The current [Playlist] to display. Null if there is nothing to do. */
     val currentPlaylist: StateFlow<Playlist?>
-        get() = _currentPlaylist
+        field = MutableStateFlow<Playlist?>(null)
 
     private val _playlistSongList = MutableStateFlow(listOf<Item>())
 
     /** The current list data derived from [currentPlaylist] */
     val playlistSongList: StateFlow<List<Item>> = _playlistSongList
 
-    private val _playlistSongInstructions = MutableEvent<UpdateInstructions>()
-
     /** Instructions for updating [playlistSongList] in the UI. */
     val playlistSongInstructions: Event<UpdateInstructions>
-        get() = _playlistSongInstructions
-
-    private val _editedPlaylist = MutableStateFlow<List<Song>?>(null)
+        field = MutableEvent<UpdateInstructions>()
 
     /**
      * The new playlist songs created during the current editing session. Null if no editing session
      * is occurring.
      */
     val editedPlaylist: StateFlow<List<Song>?>
-        get() = _editedPlaylist
+        field = MutableStateFlow<List<Song>?>(null)
 
     /** The [PlaySong] instructions to use when playing a [Song] from [Genre] details. */
     val playInPlaylistWith
@@ -221,21 +196,21 @@ constructor(
         when (type) {
             MusicType.ALBUMS -> {
                 val album = detailGenerator.album(currentAlbum.value?.uid ?: return)
-                refreshDetail(album, _currentAlbum, _albumSongList, _albumSongInstructions, replace)
+                refreshDetail(album, currentAlbum, albumSongList, albumSongInstructions, replace)
             }
             MusicType.ARTISTS -> {
                 val artist = detailGenerator.artist(currentArtist.value?.uid ?: return)
                 refreshDetail(
                     artist,
-                    _currentArtist,
+                    currentArtist,
                     _artistSongList,
-                    _artistSongInstructions,
+                    artistSongInstructions,
                     replace,
                 )
             }
             MusicType.GENRES -> {
                 val genre = detailGenerator.genre(currentGenre.value?.uid ?: return)
-                refreshDetail(genre, _currentGenre, _genreSongList, _genreSongInstructions, replace)
+                refreshDetail(genre, currentGenre, _genreSongList, genreSongInstructions, replace)
             }
             MusicType.PLAYLISTS -> {
                 refreshPlaylist(currentPlaylist.value?.uid ?: return)
@@ -322,7 +297,7 @@ constructor(
             L.d("Already have pending show command $existing, ignoring $show")
             return
         }
-        _toShow.put(show)
+        toShow.put(show)
     }
 
     /**
@@ -333,8 +308,8 @@ constructor(
      */
     fun setSong(uid: Music.UID) {
         L.d("Opening song $uid")
-        _currentSong.value = musicRepository.library?.findSong(uid)?.also(::refreshAudioInfo)
-        if (_currentSong.value == null) {
+        currentSong.value = musicRepository.library?.findSong(uid)?.also(::refreshAudioInfo)
+        if (currentSong.value == null) {
             L.w("Given song UID was invalid")
         }
     }
@@ -347,12 +322,12 @@ constructor(
      */
     fun setAlbum(uid: Music.UID) {
         L.d("Opening album $uid")
-        if (uid === _currentAlbum.value?.uid) {
+        if (uid === currentAlbum.value?.uid) {
             return
         }
         val album = detailGenerator.album(uid)
-        refreshDetail(album, _currentAlbum, _albumSongList, _albumSongInstructions, null)
-        if (_currentAlbum.value == null) {
+        refreshDetail(album, currentAlbum, albumSongList, albumSongInstructions, null)
+        if (currentAlbum.value == null) {
             L.w("Given album UID was invalid")
         }
     }
@@ -374,11 +349,11 @@ constructor(
      */
     fun setArtist(uid: Music.UID) {
         L.d("Opening artist $uid")
-        if (uid === _currentArtist.value?.uid) {
+        if (uid === currentArtist.value?.uid) {
             return
         }
         val artist = detailGenerator.artist(uid)
-        refreshDetail(artist, _currentArtist, _artistSongList, _artistSongInstructions, null)
+        refreshDetail(artist, currentArtist, _artistSongList, artistSongInstructions, null)
     }
 
     /**
@@ -398,11 +373,11 @@ constructor(
      */
     fun setGenre(uid: Music.UID) {
         L.d("Opening genre $uid")
-        if (uid === _currentGenre.value?.uid) {
+        if (uid === currentGenre.value?.uid) {
             return
         }
         val genre = detailGenerator.genre(uid)
-        refreshDetail(genre, _currentGenre, _genreSongList, _genreSongInstructions, null)
+        refreshDetail(genre, currentGenre, _genreSongList, genreSongInstructions, null)
     }
 
     /**
@@ -422,7 +397,7 @@ constructor(
      */
     fun setPlaylist(uid: Music.UID) {
         L.d("Opening playlist $uid")
-        if (uid === _currentPlaylist.value?.uid) {
+        if (uid === currentPlaylist.value?.uid) {
             return
         }
         refreshPlaylist(uid)
@@ -430,9 +405,9 @@ constructor(
 
     /** Start a playlist editing session. Does nothing if a playlist is not being shown. */
     fun startPlaylistEdit() {
-        val playlist = _currentPlaylist.value ?: return
+        val playlist = currentPlaylist.value ?: return
         L.d("Starting playlist edit")
-        _editedPlaylist.value = playlist.songs
+        editedPlaylist.value = playlist.songs
         refreshPlaylist(playlist.uid)
     }
 
@@ -441,14 +416,14 @@ constructor(
      * prior editing session.
      */
     fun savePlaylistEdit() {
-        val playlist = _currentPlaylist.value ?: return
-        val editedPlaylist = _editedPlaylist.value ?: return
+        val playlist = currentPlaylist.value ?: return
+        val editedPlaylist = editedPlaylist.value ?: return
         L.d("Committing playlist edits")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             musicRepository.rewritePlaylist(playlist, editedPlaylist)
             // TODO: The user could probably press some kind of button if they were fast enough.
             //  Think of a better way to handle this state.
-            _editedPlaylist.value = null
+            this@DetailViewModel.editedPlaylist.value = null
             refreshPlaylist(playlist.uid)
         }
     }
@@ -460,12 +435,12 @@ constructor(
      * @return true if the session was ended, false otherwise.
      */
     fun dropPlaylistEdit(): Boolean {
-        val playlist = _currentPlaylist.value ?: return false
-        if (_editedPlaylist.value == null) {
+        val playlist = currentPlaylist.value ?: return false
+        if (editedPlaylist.value == null) {
             // Nothing to do.
             return false
         }
-        _editedPlaylist.value = null
+        editedPlaylist.value = null
         refreshPlaylist(playlist.uid)
         return true
     }
@@ -476,8 +451,8 @@ constructor(
      * @param sort The [Sort] to apply.
      */
     fun applyPlaylistSongSort(sort: Sort) {
-        val playlist = _currentPlaylist.value ?: return
-        _editedPlaylist.value = sort.songs(_editedPlaylist.value ?: return)
+        val playlist = currentPlaylist.value ?: return
+        editedPlaylist.value = sort.songs(editedPlaylist.value ?: return)
         refreshPlaylist(playlist.uid, UpdateInstructions.Replace(1))
     }
 
@@ -489,8 +464,8 @@ constructor(
      * @return true if the song was moved, false otherwise.
      */
     fun movePlaylistSongs(from: Int, to: Int): Boolean {
-        val playlist = _currentPlaylist.value ?: return false
-        val editedPlaylist = (_editedPlaylist.value ?: return false).toMutableList()
+        val playlist = currentPlaylist.value ?: return false
+        val editedPlaylist = (editedPlaylist.value ?: return false).toMutableList()
         val realFrom = from - 1
         val realTo = to - 1
         if (realFrom !in editedPlaylist.indices || realTo !in editedPlaylist.indices) {
@@ -498,7 +473,7 @@ constructor(
         }
         L.d("Moving playlist song from $realFrom [$from] to $realTo [$to]")
         editedPlaylist.add(realFrom, editedPlaylist.removeAt(realTo))
-        _editedPlaylist.value = editedPlaylist
+        this.editedPlaylist.value = editedPlaylist
         refreshPlaylist(playlist.uid, UpdateInstructions.Move(from, to))
         return true
     }
@@ -509,15 +484,15 @@ constructor(
      * @param at The position of the item to remove, in the list adapter data.
      */
     fun removePlaylistSong(at: Int) {
-        val playlist = _currentPlaylist.value ?: return
-        val editedPlaylist = (_editedPlaylist.value ?: return).toMutableList()
+        val playlist = currentPlaylist.value ?: return
+        val editedPlaylist = (editedPlaylist.value ?: return).toMutableList()
         val realAt = at - 1
         if (realAt !in editedPlaylist.indices) {
             return
         }
         L.d("Removing playlist song at $realAt [$at]")
         editedPlaylist.removeAt(realAt)
-        _editedPlaylist.value = editedPlaylist
+        this.editedPlaylist.value = editedPlaylist
         refreshPlaylist(
             playlist.uid,
             if (editedPlaylist.isNotEmpty()) {
@@ -530,7 +505,7 @@ constructor(
     }
 
     private fun refreshAudioInfo(song: Song) {
-        _currentSongProperties.value = buildList {
+        currentSongProperties.value = buildList {
             add(SongProperty(R.string.lbl_name, SongProperty.Value.MusicName(song)))
             add(SongProperty(R.string.lbl_album, SongProperty.Value.MusicName(song.album)))
             add(SongProperty(R.string.lbl_artists, SongProperty.Value.MusicNames(song.artists)))
@@ -630,9 +605,9 @@ constructor(
             val playlist = detailGenerator.playlist(uid)
             refreshDetail(
                 playlist,
-                _currentPlaylist,
+                currentPlaylist,
                 _playlistSongList,
-                _playlistSongInstructions,
+                playlistSongInstructions,
                 null,
             ) {
                 EditHeader(it)
@@ -645,7 +620,7 @@ constructor(
             list.add(header)
             list.addAll(edited)
         }
-        _playlistSongInstructions.put(instructions)
+        playlistSongInstructions.put(instructions)
         _playlistSongList.value = list
     }
 }

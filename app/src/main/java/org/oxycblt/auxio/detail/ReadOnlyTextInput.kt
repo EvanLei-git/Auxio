@@ -21,7 +21,6 @@ package org.oxycblt.auxio.detail
 import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
-import android.view.View
 import androidx.appcompat.R
 import com.google.android.material.textfield.TextInputEditText
 
@@ -44,7 +43,7 @@ constructor(
         // Enable selection, but still disable focus (i.e Keyboard opening)
         setTextIsSelectable(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            focusable = View.FOCUSABLE_AUTO
+            focusable = FOCUSABLE_AUTO
         }
     }
 

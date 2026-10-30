@@ -31,10 +31,19 @@ internal interface TagParser {
 private data object TagParserImpl : TagParser {
     override fun parse(metadata: Metadata): ParsedTags {
         val compilation = metadata.isCompilation()
-        val artistMusicBrainzIds =
-            metadata.artistMusicBrainzIds() ?: metadata.composerMusicBrainzIds() ?: listOf()
-        val artistNames = metadata.artistNames() ?: metadata.composerNames() ?: listOf()
-        val artistSortNames = metadata.artistSortNames() ?: metadata.composerSortNames() ?: listOf()
+        var artistMusicBrainzIds = metadata.artistMusicBrainzIds() ?: listOf()
+        var artistNames = metadata.artistNames()
+        var artistSortNames = metadata.artistSortNames() ?: listOf()
+        if (artistNames == null) {
+            // We don't have a first-class composer type, it's just a fallback for artist
+            // when we don't seem to have any.
+            //
+            // In this case we override to composer in a single go so we don't accidentally
+            // hybridize sort tags or MBIDs between artist/composer.
+            artistMusicBrainzIds = metadata.composerMusicBrainzIds() ?: listOf()
+            artistNames = metadata.composerNames() ?: listOf()
+            artistSortNames = metadata.composerSortNames() ?: listOf()
+        }
         return ParsedTags(
             durationMs = metadata.properties.durationMs,
             replayGainTrackAdjustment = metadata.replayGainTrackAdjustment(),

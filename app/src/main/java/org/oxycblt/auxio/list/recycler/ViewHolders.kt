@@ -19,7 +19,7 @@
 package org.oxycblt.auxio.list.recycler
 
 import android.annotation.SuppressLint
-import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.divider.MaterialDivider
 import org.oxycblt.auxio.IntegerTable
@@ -83,7 +83,8 @@ class SongViewHolder private constructor(private val binding: ItemSongBinding) :
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) = SongViewHolder(ItemSongBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            SongViewHolder(ItemSongBinding.inflate(parent.context.inflater, parent, false))
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =
@@ -133,7 +134,8 @@ class AlbumViewHolder private constructor(private val binding: ItemParentBinding
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) = AlbumViewHolder(ItemParentBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            AlbumViewHolder(ItemParentBinding.inflate(parent.context.inflater, parent, false))
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =
@@ -198,8 +200,8 @@ class ArtistViewHolder private constructor(private val binding: ItemParentBindin
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            ArtistViewHolder(ItemParentBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            ArtistViewHolder(ItemParentBinding.inflate(parent.context.inflater, parent, false))
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =
@@ -256,7 +258,8 @@ class GenreViewHolder private constructor(private val binding: ItemParentBinding
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) = GenreViewHolder(ItemParentBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            GenreViewHolder(ItemParentBinding.inflate(parent.context.inflater, parent, false))
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =
@@ -313,8 +316,8 @@ class PlaylistViewHolder private constructor(private val binding: ItemParentBind
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            PlaylistViewHolder(ItemParentBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            PlaylistViewHolder(ItemParentBinding.inflate(parent.context.inflater, parent, false))
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =
@@ -351,8 +354,8 @@ class BasicHeaderViewHolder private constructor(private val binding: ItemHeaderB
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            BasicHeaderViewHolder(ItemHeaderBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            BasicHeaderViewHolder(ItemHeaderBinding.inflate(parent.context.inflater, parent, false))
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =
@@ -381,7 +384,16 @@ class DividerViewHolder private constructor(divider: MaterialDivider) :
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) = DividerViewHolder(MaterialDivider(parent.context))
+        fun from(parent: ViewGroup) =
+            DividerViewHolder(
+                MaterialDivider(parent.context).apply {
+                    layoutParams =
+                        RecyclerView.LayoutParams(
+                            RecyclerView.LayoutParams.MATCH_PARENT,
+                            RecyclerView.LayoutParams.WRAP_CONTENT,
+                        )
+                }
+            )
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =

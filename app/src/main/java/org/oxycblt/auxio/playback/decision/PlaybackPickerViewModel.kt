@@ -37,10 +37,9 @@ import timber.log.Timber as L
 @HiltViewModel
 class PlaybackPickerViewModel @Inject constructor(private val musicRepository: MusicRepository) :
     ViewModel(), MusicRepository.UpdateListener {
-    private val _currentPickerSong = MutableStateFlow<Song?>(null)
     /** The current set of [Artist] choices to show in the picker, or null if to show nothing. */
     val currentPickerSong: StateFlow<Song?>
-        get() = _currentPickerSong
+        field = MutableStateFlow<Song?>(null)
 
     init {
         musicRepository.addUpdateListener(this)
@@ -49,11 +48,10 @@ class PlaybackPickerViewModel @Inject constructor(private val musicRepository: M
     override fun onMusicChanges(changes: MusicRepository.Changes) {
         if (!changes.deviceLibrary) return
         val library = musicRepository.library ?: return
-        _currentPickerSong.value = _currentPickerSong.value?.run { library.findSong(uid) }
+        currentPickerSong.value = currentPickerSong.value?.run { library.findSong(uid) }
     }
 
     override fun onCleared() {
-        super.onCleared()
         musicRepository.removeUpdateListener(this)
     }
 
@@ -64,8 +62,8 @@ class PlaybackPickerViewModel @Inject constructor(private val musicRepository: M
      */
     fun setPickerSongUid(uid: Music.UID) {
         L.d("Opening picker for song $uid")
-        _currentPickerSong.value = musicRepository.library?.findSong(uid)
-        if (_currentPickerSong.value != null) {
+        currentPickerSong.value = musicRepository.library?.findSong(uid)
+        if (currentPickerSong.value != null) {
             L.w("Given song UID was invalid")
         }
     }

@@ -18,18 +18,22 @@
  
 package org.oxycblt.auxio.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import androidx.core.view.isInvisible
+import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
 import com.google.android.material.R as MR
 import com.google.android.material.motion.MotionUtils
 import com.google.android.material.shape.MaterialShapeDrawable
 import org.oxycblt.auxio.util.scale
+
+private const val MIN_VISIBLE_CHANGE_DRAWABLE_ALPHA = 1f
 
 class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int) {
     private fun resolve(context: Context) =
@@ -41,7 +45,7 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
         return SpringAnimation(FloatValueHolder(from)).apply {
             spring = springForce
             setStartValue(from)
-            setMinimumVisibleChange(0.0001f)
+            setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_SCALE)
             addUpdateListener { _, value, _ -> view.scale = value }
             addEndListener { _, canceled, value, _ ->
                 view.scale = if (!canceled || jumpOnCancellation) to else value
@@ -56,7 +60,7 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
         return SpringAnimation(FloatValueHolder(from)).apply {
             spring = springForce
             setStartValue(from)
-            setMinimumVisibleChange(0.0001f)
+            setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_PIXELS)
             addUpdateListener { _, value, _ -> view.translationX = value }
             addEndListener { _, canceled, value, _ ->
                 view.translationX = if (!canceled || jumpOnCancellation) to else value
@@ -71,7 +75,7 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
         return SpringAnimation(FloatValueHolder(from)).apply {
             spring = springForce
             setStartValue(from)
-            setMinimumVisibleChange(0.0001f)
+            setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_PIXELS)
             addUpdateListener { _, value, _ -> view.translationZ = value }
             addEndListener { _, canceled, value, _ ->
                 view.translationZ = if (!canceled || jumpOnCancellation) to else value
@@ -91,7 +95,7 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
         return SpringAnimation(FloatValueHolder(from)).apply {
             spring = springForce
             setStartValue(from)
-            setMinimumVisibleChange(0.0001f)
+            setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_PIXELS)
             addUpdateListener { _, value, _ -> drawable.elevation = value }
             addEndListener { _, canceled, value, _ ->
                 drawable.elevation = if (!canceled || jumpOnCancellation) to else value
@@ -111,7 +115,7 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
         return SpringAnimation(FloatValueHolder(from)).apply {
             spring = springForce
             setStartValue(from)
-            setMinimumVisibleChange(0.0001f)
+            setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_PIXELS)
             addUpdateListener { _, value, _ -> drawable.setCornerSize(value) }
             addEndListener { _, canceled, value, _ ->
                 drawable.setCornerSize(if (!canceled || jumpOnCancellation) to else value)
@@ -120,6 +124,7 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
         }
     }
 
+    @SuppressLint("PrivateResource")
     companion object {
         val FAST =
             Spatial(
@@ -131,11 +136,11 @@ class Spatial private constructor(@AttrRes val attr: Int, val defaultStyle: Int)
                 MR.attr.motionSpringDefaultSpatial,
                 MR.style.Motion_Material3_Spring_Standard_Default_Spatial,
             )
-        val SLOW =
-            Spatial(
-                MR.attr.motionSpringSlowSpatial,
-                MR.style.Motion_Material3_Spring_Standard_Slow_Spatial,
-            )
+        //        val SLOW =
+        //            Spatial(
+        //                MR.attr.motionSpringSlowSpatial,
+        //                MR.style.Motion_Material3_Spring_Standard_Slow_Spatial,
+        //            )
     }
 }
 
@@ -148,7 +153,7 @@ class Effect private constructor(@AttrRes val attr: Int, @StyleRes val defaultSt
         return SpringAnimation(FloatValueHolder(from)).apply {
             spring = springForce
             setStartValue(from)
-            setMinimumVisibleChange(1f / 255f)
+            setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_ALPHA)
             addUpdateListener { _, value, _ ->
                 view.alpha = value
                 view.isInvisible = view.alpha == 0f
@@ -172,7 +177,7 @@ class Effect private constructor(@AttrRes val attr: Int, @StyleRes val defaultSt
         return SpringAnimation(FloatValueHolder(from.toFloat())).apply {
             spring = springForce
             setStartValue(from.toFloat())
-            setMinimumVisibleChange(1f / 255f)
+            setMinimumVisibleChange(MIN_VISIBLE_CHANGE_DRAWABLE_ALPHA)
             addUpdateListener { _, value, _ -> drawable.alpha = value.toInt() }
             addEndListener { _, canceled, value, _ ->
                 drawable.alpha = (if (!canceled || jumpOnCancellation) to else value).toInt()
@@ -187,11 +192,11 @@ class Effect private constructor(@AttrRes val attr: Int, @StyleRes val defaultSt
                 MR.attr.motionSpringDefaultEffects,
                 MR.style.Motion_Material3_Spring_Standard_Default_Effects,
             )
-        val SLOW =
-            Effect(
-                MR.attr.motionSpringSlowEffects,
-                MR.style.Motion_Material3_Spring_Standard_Slow_Effects,
-            )
+        //        val SLOW =
+        //            Effect(
+        //                MR.attr.motionSpringSlowEffects,
+        //                MR.style.Motion_Material3_Spring_Standard_Slow_Effects,
+        //            )
         val FAST =
             Effect(
                 MR.attr.motionSpringFastEffects,

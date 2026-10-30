@@ -21,6 +21,7 @@ package org.oxycblt.auxio.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,10 +58,9 @@ constructor(
     private var lastQuery: String? = null
     private var currentSearchJob: Job? = null
 
-    private val _searchResults = MutableStateFlow(listOf<Item>())
     /** The results of the last [search] call, if any. */
     val searchResults: StateFlow<List<Item>>
-        get() = _searchResults
+        field = MutableStateFlow(listOf<Item>())
 
     /** The [PlaySong] instructions to use when playing a [Song]. */
     val playWith
@@ -71,7 +71,6 @@ constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         musicRepository.removeUpdateListener(this)
     }
 
@@ -96,16 +95,15 @@ constructor(
         val library = musicRepository.library
         if (query.isNullOrEmpty() || library == null) {
             L.d("Cannot search for the current query, aborting")
-            _searchResults.value = listOf()
+            searchResults.value = listOf()
             return
         }
 
         // Searching is time-consuming, so do it in the background.
         L.d("Searching music library for $query")
-        currentSearchJob =
-            viewModelScope.launch {
-                _searchResults.value = searchImpl(library, query).also { yield() }
-            }
+        currentSearchJob = viewModelScope.launch(Dispatchers.Default) {
+            searchResults.value = searchImpl(library, query).also { yield() }
+        }
     }
 
     private suspend fun searchImpl(library: Library, query: String): List<Item> {

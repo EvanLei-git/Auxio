@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Auxio Project
- * PlayerFastSeekOverlay.kt is part of Auxio.
+ * StepperOverlay.kt is part of Auxio.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,23 +31,26 @@ import androidx.dynamicanimation.animation.SpringAnimation
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.ui.Effect
 import org.oxycblt.auxio.ui.UISettings
-import javax.inject.Inject
 
 enum class Direction {
     FORWARDS,
-    BACKWARDS
+    BACKWARDS,
 }
 
 @AndroidEntryPoint
-class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
+class StepperOverlay(context: Context, attrs: AttributeSet?) :
     ConstraintLayout(context, attrs), GestureDetector.OnDoubleTapListener {
     private sealed interface OverlayState {
         data object Invisible : OverlayState
+
         data class Entering(val tap: SpringAnimation, val seconds: SpringAnimation) : OverlayState
+
         data class Wait(val runnable: Runnable) : OverlayState
+
         data class Exiting(val tap: SpringAnimation, val seconds: SpringAnimation) : OverlayState
     }
 
@@ -59,15 +62,14 @@ class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
     private var rightTapView: TapView
     private val gestureDetector: GestureDetector
 
-    var performListener: PerformListener? = null
+    var listener: Listener? = null
 
     private val alphaSpring = Effect.FAST
-
 
     private var leftOverlayState: OverlayState = OverlayState.Invisible
     private var rightOverlayState: OverlayState = OverlayState.Invisible
 
-    interface PerformListener {
+    interface Listener {
         fun seek(direction: Direction)
     }
 
@@ -75,21 +77,21 @@ class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
         LayoutInflater.from(context).inflate(R.layout.player_fast_seek_overlay, this, true)
 
         // Set up shape appearance based on UISettings similar to CoverView
-        context.withStyledAttributes(attrs, R.styleable.PlayerFastSeekOverlay) {
+        context.withStyledAttributes(attrs, R.styleable.StepperOverlay) {
             val shapeAppearanceRes =
                 getResourceId(
-                    R.styleable.PlayerFastSeekOverlay_shapeAppearance,
-                    com.google.android.material.R.style
-                        .ShapeAppearance_Material3_Corner_Medium
+                    R.styleable.StepperOverlay_shapeAppearance,
+                    com.google.android.material.R.style.ShapeAppearance_Material3_Corner_Medium,
                 )
 
             background =
                 MaterialShapeDrawable().apply {
-                    shapeAppearanceModel = if (uiSettings.roundMode) {
-                        ShapeAppearanceModel.builder(context, shapeAppearanceRes, -1).build()
-            } else {
-                ShapeAppearanceModel.builder().build()
-                    }
+                    shapeAppearanceModel =
+                        if (uiSettings.roundMode) {
+                            ShapeAppearanceModel.builder(context, shapeAppearanceRes, -1).build()
+                        } else {
+                            ShapeAppearanceModel.builder().build()
+                        }
                     // Set transparent background as we only want the clipping
                     fillColor = ColorStateList.valueOf(Color.TRANSPARENT)
                 }
@@ -131,22 +133,22 @@ class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
         rightTapView.setDirection(Direction.FORWARDS) // isLeft = false for right side
     }
 
-
     override fun onTouchEvent(event: MotionEvent): Boolean =
         gestureDetector.onTouchEvent(event) || super.onTouchEvent(event)
 
     override fun onSingleTapConfirmed(e: MotionEvent) = false
 
-
-    private fun enter(secondsView: SecondsView, tapView: TapView, overlayState: (OverlayState) -> Unit) {
+    private fun enter(
+        secondsView: SecondsView,
+        tapView: TapView,
+        overlayState: (OverlayState) -> Unit,
+    ) {
         // start animating the seconds icon
         secondsView.startAnimation()
         val secondsIn = alphaSpring.alpha(secondsView, 1.0f)
         val tapIn = alphaSpring.alpha(tapView, 1.0f)
         // will execute after a delay
-        val out = Runnable {
-            exit(secondsView, tapView, overlayState)
-        }
+        val out = Runnable { exit(secondsView, tapView, overlayState) }
         tapIn.addEndListener { _, cancelled, _, _ ->
             if (!cancelled) {
                 postDelayed(out, EXIT_DELAY_MS)
@@ -156,7 +158,11 @@ class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
         overlayState(OverlayState.Entering(secondsIn, tapIn))
     }
 
-    private fun exit(secondsView: SecondsView, tapView: TapView, overlayState: (OverlayState) -> Unit) {
+    private fun exit(
+        secondsView: SecondsView,
+        tapView: TapView,
+        overlayState: (OverlayState) -> Unit,
+    ) {
         val secondsOut = alphaSpring.alpha(secondsView, 0.0f)
         val tapOut = alphaSpring.alpha(tapView, 0.0f)
         tapOut.addEndListener { _, cancelled, _, _ ->
@@ -257,7 +263,7 @@ class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
                     rightSecondsView,
                     rightTapView,
                     rightOverlayState,
-                    { rightOverlayState = it }
+                    { rightOverlayState = it },
                 )
             }
 
@@ -276,7 +282,7 @@ class PlayerFastSeekOverlay(context: Context, attrs: AttributeSet?) :
             }
         }
 
-        performListener?.seek(direction)
+        listener?.seek(direction)
 
         return false
     }

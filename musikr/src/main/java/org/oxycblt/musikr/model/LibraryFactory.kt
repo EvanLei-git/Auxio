@@ -46,7 +46,7 @@ internal interface LibraryFactory {
     }
 }
 
-private class LibraryFactoryImpl() : LibraryFactory {
+private class LibraryFactoryImpl : LibraryFactory {
     override fun create(
         graph: MusicGraph,
         storedPlaylists: StoredPlaylists,

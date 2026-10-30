@@ -87,7 +87,6 @@ abstract class SortDialog :
 
     private fun getCurrentSort(): Sort? {
         val binding = requireBinding()
-        val initial = getInitialSort()
         val mode = modeAdapter.currentMode ?: return null
         val direction =
             if (binding.sortDirectionAsc.isChecked) Sort.Direction.ASCENDING

@@ -52,15 +52,13 @@ constructor(
     private val playbackSettings: PlaybackSettings,
     homeGeneratorFactory: HomeGenerator.Factory,
 ) : ViewModel(), HomeGenerator.Invalidator {
-    private val _songList = MutableStateFlow(listOf<Song>())
     /** A list of [Song]s, sorted by the preferred [Sort], to be shown in the home view. */
     val songList: StateFlow<List<Song>>
-        get() = _songList
+        field = MutableStateFlow(listOf<Song>())
 
-    private val _songInstructions = MutableEvent<UpdateInstructions>()
     /** Instructions for how to update [songList] in the UI. */
     val songInstructions: Event<UpdateInstructions>
-        get() = _songInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [songList]. */
     val songSort: Sort
@@ -70,15 +68,13 @@ constructor(
     val playWith
         get() = playbackSettings.playInListWith
 
-    private val _albumList = MutableStateFlow(listOf<Album>())
     /** A list of [Album]s, sorted by the preferred [Sort], to be shown in the home view. */
     val albumList: StateFlow<List<Album>>
-        get() = _albumList
+        field = MutableStateFlow(listOf<Album>())
 
-    private val _albumInstructions = MutableEvent<UpdateInstructions>()
     /** Instructions for how to update [albumList] in the UI. */
     val albumInstructions: Event<UpdateInstructions>
-        get() = _albumInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [albumList]. */
     val albumSort: Sort
@@ -92,42 +88,36 @@ constructor(
     val artistList: MutableStateFlow<List<Artist>>
         get() = _artistList
 
-    private val _artistInstructions = MutableEvent<UpdateInstructions>()
     /** Instructions for how to update [artistList] in the UI. */
     val artistInstructions: Event<UpdateInstructions>
-        get() = _artistInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [artistList]. */
     val artistSort: Sort
         get() = listSettings.artistSort
 
-    private val _genreList = MutableStateFlow(listOf<Genre>())
     /** A list of [Genre]s, sorted by the preferred [Sort], to be shown in the home view. */
     val genreList: StateFlow<List<Genre>>
-        get() = _genreList
+        field = MutableStateFlow(listOf<Genre>())
 
-    private val _genreInstructions = MutableEvent<UpdateInstructions>()
     /** Instructions for how to update [genreList] in the UI. */
     val genreInstructions: Event<UpdateInstructions>
-        get() = _genreInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [genreList]. */
     val genreSort: Sort
         get() = listSettings.genreSort
 
-    private val _playlistList = MutableStateFlow(listOf<Playlist>())
     /** A list of [Playlist]s, sorted by the preferred [Sort], to be shown in the home view. */
     val playlistList: StateFlow<List<Playlist>>
-        get() = _playlistList
+        field = MutableStateFlow(listOf<Playlist>())
 
-    private val _empty = MutableStateFlow(false)
     val empty: StateFlow<Boolean>
-        get() = _empty
+        field = MutableStateFlow(false)
 
-    private val _playlistInstructions = MutableEvent<UpdateInstructions>()
     /** Instructions for how to update [genreList] in the UI. */
     val playlistInstructions: Event<UpdateInstructions>
-        get() = _playlistInstructions
+        field = MutableEvent<UpdateInstructions>()
 
     /** The current [Sort] used for [genreList]. */
     val playlistSort: Sort
@@ -146,68 +136,64 @@ constructor(
     /** The [MusicType] of the currently shown [Tab]. */
     val currentTabType: StateFlow<MusicType> = _currentTabType
 
-    private val _shouldRecreate = MutableEvent<Unit>()
     /**
      * A marker to re-create all library tabs, usually initiated by a settings change. When this
      * flag is true, all tabs (and their respective ViewPager2 fragments) will be re-created from
      * scratch.
      */
     val recreateTabs: Event<Unit>
-        get() = _shouldRecreate
+        field = MutableEvent<Unit>()
 
     private val _isFastScrolling = MutableStateFlow(false)
     /** A marker for whether the user is fast-scrolling in the home view or not. */
     val isFastScrolling: StateFlow<Boolean> = _isFastScrolling
 
-    private val _showOuter = MutableEvent<Outer>()
     val showOuter: Event<Outer>
-        get() = _showOuter
+        field = MutableEvent<Outer>()
 
-    private val _chooseMusicLocations = MutableEvent<Unit>()
     val chooseMusicLocations: Event<Unit>
-        get() = _chooseMusicLocations
+        field = MutableEvent<Unit>()
 
     init {
         homeGenerator.attach()
     }
 
     override fun onCleared() {
-        super.onCleared()
         homeGenerator.release()
     }
 
     override fun invalidateEmpty() {
-        _empty.value = homeGenerator.empty()
+        empty.value = homeGenerator.empty()
     }
 
     override fun invalidateMusic(type: MusicType, instructions: UpdateInstructions) {
         when (type) {
             MusicType.SONGS -> {
-                _songInstructions.put(instructions)
-                _songList.value = homeGenerator.songs()
+                songInstructions.put(instructions)
+                songList.value = homeGenerator.songs()
             }
             MusicType.ALBUMS -> {
-                _albumInstructions.put(instructions)
-                _albumList.value = homeGenerator.albums()
+                albumInstructions.put(instructions)
+                albumList.value = homeGenerator.albums()
             }
             MusicType.ARTISTS -> {
-                _artistInstructions.put(instructions)
+                artistInstructions.put(instructions)
                 _artistList.value = homeGenerator.artists()
             }
             MusicType.GENRES -> {
-                _genreInstructions.put(instructions)
-                _genreList.value = homeGenerator.genres()
+                genreInstructions.put(instructions)
+                genreList.value = homeGenerator.genres()
             }
             MusicType.PLAYLISTS -> {
-                _playlistInstructions.put(instructions)
-                _playlistList.value = homeGenerator.playlists()
+                playlistInstructions.put(instructions)
+                playlistList.value = homeGenerator.playlists()
             }
         }
     }
 
     override fun invalidateTabs() {
         currentTabTypes = homeGenerator.tabs()
-        _shouldRecreate.put(Unit)
+        recreateTabs.put(Unit)
     }
 
     /**
@@ -276,15 +262,15 @@ constructor(
     }
 
     fun startChooseMusicLocations() {
-        _chooseMusicLocations.put(Unit)
+        chooseMusicLocations.put(Unit)
     }
 
     fun showSettings() {
-        _showOuter.put(Outer.Settings)
+        showOuter.put(Outer.Settings)
     }
 
     fun showAbout() {
-        _showOuter.put(Outer.About)
+        showOuter.put(Outer.About)
     }
 }
 

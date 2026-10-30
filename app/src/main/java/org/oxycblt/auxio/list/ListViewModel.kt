@@ -48,10 +48,9 @@ class ListViewModel
 @Inject
 constructor(private val listSettings: ListSettings, private val musicRepository: MusicRepository) :
     ViewModel(), MusicRepository.UpdateListener {
-    private val _selected = MutableStateFlow(listOf<Music>())
     /** The currently selected items. These are ordered in earliest selected and latest selected. */
     val selected: StateFlow<List<Music>>
-        get() = _selected
+        field = MutableStateFlow(listOf<Music>())
 
     private val _menu = MutableEvent<Menu>()
     /**
@@ -67,8 +66,8 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
         val library = musicRepository.library ?: return
         // Sanitize the selection to remove items that no longer exist and thus
         // won't appear in any list.
-        _selected.value =
-            _selected.value.mapNotNull {
+        selected.value =
+            selected.value.mapNotNull {
                 when (it) {
                     is Song -> library.findSong(it.uid)
                     is Album -> library.findAlbum(it.uid)
@@ -80,7 +79,6 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
     }
 
     override fun onCleared() {
-        super.onCleared()
         musicRepository.removeUpdateListener(this)
     }
 
@@ -96,7 +94,7 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
             return
         }
 
-        val selected = _selected.value.toMutableList()
+        val selected = selected.value.toMutableList()
         if (!selected.remove(music)) {
             L.d("Adding $music to selection")
             selected.add(music)
@@ -104,7 +102,7 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
             L.d("Removed $music from selection")
         }
 
-        _selected.value = selected
+        this.selected.value = selected
     }
 
     /**
@@ -113,7 +111,7 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
      * @return A list of [Song]s collated from each item selected.
      */
     fun peekSelection() =
-        _selected.value.flatMap {
+        selected.value.flatMap {
             when (it) {
                 is Song -> listOf(it)
                 is Album -> listSettings.albumSongSort.songs(it.songs)
@@ -130,7 +128,7 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
      */
     fun takeSelection(): List<Song> {
         L.d("Taking selection")
-        return peekSelection().also { _selected.value = listOf() }
+        return peekSelection().also { selected.value = listOf() }
     }
 
     /**
@@ -139,8 +137,8 @@ constructor(private val listSettings: ListSettings, private val musicRepository:
      * @return true if the prior selection was non-empty, false otherwise.
      */
     fun dropSelection(): Boolean {
-        L.d("Dropping selection [empty=${_selected.value.isEmpty()}]")
-        return _selected.value.isNotEmpty().also { _selected.value = listOf() }
+        L.d("Dropping selection [empty=${selected.value.isEmpty()}]")
+        return selected.value.isNotEmpty().also { selected.value = listOf() }
     }
 
     /**

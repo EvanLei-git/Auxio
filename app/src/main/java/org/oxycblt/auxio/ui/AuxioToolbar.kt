@@ -39,13 +39,12 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.children
-import androidx.core.view.get
 import androidx.core.view.isNotEmpty
 import androidx.core.view.isVisible
-import androidx.core.view.size
 import com.google.android.material.R as MR
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.ViewToolbarBinding
+import org.oxycblt.auxio.util.isRtl
 import org.oxycblt.auxio.util.unlikelyToBeNull
 
 /**
@@ -61,16 +60,15 @@ constructor(
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = AR.attr.toolbarStyle,
 ) : FrameLayout(context, attrs, defStyleAttr) {
-    private var inflatingLayout: Boolean
-    private val binding: ViewToolbarBinding
+    private var inflatingLayout: Boolean = true
+    private val binding: ViewToolbarBinding =
+        ViewToolbarBinding.inflate(LayoutInflater.from(context), this, true)
     private var menuItemClickListener: Toolbar.OnMenuItemClickListener? = null
     private var overflowClickListener: OnClickListener? = null
     private val actionButtons = mutableMapOf<Int, RippleFixMaterialButton>()
     @SuppressLint("RestrictedApi") private var menuBuilder = MenuBuilder(context)
 
     init {
-        inflatingLayout = true
-        binding = ViewToolbarBinding.inflate(LayoutInflater.from(context), this, true)
         inflatingLayout = false
 
         clipChildren = false
@@ -146,6 +144,9 @@ constructor(
                 toolbarAttrs.getText(AR.styleable.Toolbar_navigationContentDescription)
             isVisible = icon != null
             TooltipCompat.setTooltipText(this, contentDescription)
+            if (isRtl) {
+                rotation = 180f
+            }
         }
 
         val menuResId = toolbarAttrs.getResourceId(AR.styleable.Toolbar_menu, 0)
@@ -168,10 +169,6 @@ constructor(
                 LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
             )
         }
-    }
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
     }
 
     var title: CharSequence?

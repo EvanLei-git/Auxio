@@ -61,7 +61,7 @@ internal data class MusicGraph(
             appendLine("  node [style=filled,fillcolor=lightblue];")
             songVertex.forEachIndexed { index, song ->
                 val songId = "song_$index"
-                val name = song.preSong.rawName ?: "Unknown Song"
+                val name = song.preSong.rawName
                 val uid = song.preSong.v401Uid
                 val label = "${escape(name)}\\nUID: $uid"
                 appendLine("  $songId [label=\"$label\"];")
@@ -285,10 +285,10 @@ private class MusicGraphBuilderImpl : MusicGraph.Builder {
             val canon = cluster.maxBy { it.songVertices.size }.preAlbum
             val same = cluster.all { it.preAlbum == canon }
             if (!same) {
-                val noMbidPreAlbum = canon
+                // canon is the no-mbid pre-album
                 val simpleMbidVertex =
-                    albumVertices.getOrPut(noMbidPreAlbum) {
-                        AlbumVertex(noMbidPreAlbum, mutableListOf())
+                    albumVertices.getOrPut(canon) {
+                        AlbumVertex(canon, mutableListOf())
                     }
                 for (album in cluster) {
                     meldAlbumVertices(album, simpleMbidVertex)
@@ -381,14 +381,13 @@ private class MusicGraphBuilderImpl : MusicGraph.Builder {
             return
         }
         // No full MBID coverage, discard the MBIDs from the graph.
-        val strippedCluster =
-            cluster.map {
-                val noMbidPreArtist = it.preArtist.copy(musicBrainzId = null)
-                val simpleMbidVertex =
-                    artistVertices.getOrPut(noMbidPreArtist) { ArtistVertex(noMbidPreArtist) }
-                meldArtistVertices(it, simpleMbidVertex)
-                simpleMbidVertex
-            }
+        val strippedCluster = cluster.map {
+            val noMbidPreArtist = it.preArtist.copy(musicBrainzId = null)
+            val simpleMbidVertex =
+                artistVertices.getOrPut(noMbidPreArtist) { ArtistVertex(noMbidPreArtist) }
+            meldArtistVertices(it, simpleMbidVertex)
+            simpleMbidVertex
+        }
         simplifyArtistClusterImpl(strippedCluster)
     }
 
@@ -457,41 +456,41 @@ private class MusicGraphBuilderImpl : MusicGraph.Builder {
             return
         }
         // No full MBID coverage, discard the MBIDs from the graph.
-        val strippedMbidCluster =
-            cluster.map {
-                val noMbidPreAlbum = it.preAlbum.copy(musicBrainzId = null)
-                val simpleMbidVertex =
-                    albumVertices.getOrPut(noMbidPreAlbum) {
-                        AlbumVertex(noMbidPreAlbum, it.artistVertices.toMutableList())
-                    }
-                meldAlbumVertices(it, simpleMbidVertex)
-                simpleMbidVertex
-            }
-        val fullAlbumArtistCoverage =
-            strippedMbidCluster.all { it.preAlbum.preArtists is PreArtistsFrom.Album }
+        val strippedMbidCluster = cluster.map {
+            val noMbidPreAlbum = it.preAlbum.copy(musicBrainzId = null)
+            val simpleMbidVertex =
+                albumVertices.getOrPut(noMbidPreAlbum) {
+                    AlbumVertex(noMbidPreAlbum, it.artistVertices.toMutableList())
+                }
+            meldAlbumVertices(it, simpleMbidVertex)
+            simpleMbidVertex
+        }
+        val fullAlbumArtistCoverage = strippedMbidCluster.all {
+            it.preAlbum.preArtists is PreArtistsFrom.Album
+        }
         if (fullAlbumArtistCoverage) {
             // All albums have album artists, we can reasonably cluster around artists
             // rather than just name.
-            val albumArtistClusters =
-                strippedMbidCluster.groupBy { it.preAlbum.preArtists.preArtists }
+            val albumArtistClusters = strippedMbidCluster.groupBy {
+                it.preAlbum.preArtists.preArtists
+            }
             for (albumArtistCluster in albumArtistClusters.values) {
                 simplifyAlbumClusterImpl(albumArtistCluster)
             }
             return
         }
-        val strippedAlbumArtistCluster =
-            strippedMbidCluster.map {
-                val noAlbumArtistPreAlbum =
-                    it.preAlbum.copy(
-                        preArtists = PreArtistsFrom.Individual(it.preAlbum.preArtists.preArtists)
-                    )
-                val simpleAlbumArtistVertex =
-                    albumVertices.getOrPut(noAlbumArtistPreAlbum) {
-                        AlbumVertex(noAlbumArtistPreAlbum, it.artistVertices.toMutableList())
-                    }
-                meldAlbumVertices(it, simpleAlbumArtistVertex)
-                simpleAlbumArtistVertex
-            }
+        val strippedAlbumArtistCluster = strippedMbidCluster.map {
+            val noAlbumArtistPreAlbum =
+                it.preAlbum.copy(
+                    preArtists = PreArtistsFrom.Individual(it.preAlbum.preArtists.preArtists)
+                )
+            val simpleAlbumArtistVertex =
+                albumVertices.getOrPut(noAlbumArtistPreAlbum) {
+                    AlbumVertex(noAlbumArtistPreAlbum, it.artistVertices.toMutableList())
+                }
+            meldAlbumVertices(it, simpleAlbumArtistVertex)
+            simpleAlbumArtistVertex
+        }
         simplifyAlbumClusterImpl(strippedAlbumArtistCluster)
     }
 

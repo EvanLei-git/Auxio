@@ -21,7 +21,9 @@ package org.oxycblt.auxio.playback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,63 +66,55 @@ constructor(
 ) : ViewModel(), PlaybackStateManager.Listener, PlaybackSettings.Listener {
     private var lastPositionJob: Job? = null
 
-    private val _song = MutableStateFlow<Song?>(null)
     /** The currently playing song. */
     val song: StateFlow<Song?>
-        get() = _song
+        field = MutableStateFlow<Song?>(null)
 
     private val _parent = MutableStateFlow<MusicParent?>(null)
     /** The [MusicParent] currently being played. Null if playback is occurring from all songs. */
     val parent: StateFlow<MusicParent?> = _parent
-    private val _isPlaying = MutableStateFlow(false)
+
     /** Whether playback is ongoing or paused. */
     val isPlaying: StateFlow<Boolean>
-        get() = _isPlaying
+        field = MutableStateFlow(false)
 
-    private val _positionDs = MutableStateFlow(0L)
     /** The current position, in deci-seconds (1/10th of a second). */
     val positionDs: StateFlow<Long>
-        get() = _positionDs
+        field = MutableStateFlow(0L)
 
-    private val _repeatMode = MutableStateFlow(RepeatMode.NONE)
     /** The current [RepeatMode]. */
     val repeatMode: StateFlow<RepeatMode>
-        get() = _repeatMode
+        field = MutableStateFlow(RepeatMode.NONE)
 
-    private val _isShuffled = MutableStateFlow(false)
     /** Whether the queue is shuffled or not. */
     val isShuffled: StateFlow<Boolean>
-        get() = _isShuffled
+        field = MutableStateFlow(false)
 
-    private val _currentBarAction = MutableStateFlow(playbackSettings.barAction)
     /** The current secondary action to show alongside the play button in the playback bar. */
     val currentBarAction: StateFlow<ActionMode>
-        get() = _currentBarAction
+        field = MutableStateFlow(playbackSettings.barAction)
 
-    private val _openPanel = MutableEvent<OpenPanel>()
     /**
      * A [OpenPanel] command that is awaiting a view capable of responding to it. Null if none
      * currently.
      */
     val openPanel: Event<OpenPanel>
-        get() = _openPanel
+        field = MutableEvent<OpenPanel>()
 
     private val _pagerQueue = MutableStateFlow(PagerQueue(listOf(), 0))
     /** The current queue in a special bundled format suitable for the cover ViewPager2. */
     val pagerQueue: StateFlow<PagerQueue> = _pagerQueue
 
-    private val _pagerCommand = MutableEvent<PagerCommand>()
     /** Specialized ViewPager2-friendly queue commands */
     val pagerCommand: Event<PagerCommand>
-        get() = _pagerCommand
+        field = MutableEvent<PagerCommand>()
 
-    private val _playbackDecision = MutableEvent<PlaybackDecision>()
     /**
      * A [PlaybackDecision] command that is awaiting a view capable of responding to it. Null if
      * none currently.
      */
     val playbackDecision: Event<PlaybackDecision>
-        get() = _playbackDecision
+        field = MutableEvent<PlaybackDecision>()
 
     /**
      * The current audio session ID of the internal player. Null if no audio player is available.
@@ -140,15 +134,10 @@ constructor(
 
     override fun onIndexMoved(index: Int) {
         L.d("Index moved, updating current song")
-        _positionDs.value = playbackManager.progression.calculateElapsedPositionMs().msToDs()
-        _song.value = playbackManager.currentSong
+        positionDs.value = playbackManager.progression.calculateElapsedPositionMs().msToDs()
+        song.value = playbackManager.currentSong
 
-        _pagerCommand.put(
-            PagerCommand(
-                update = null,
-                scroll = index
-            )
-        )
+        pagerCommand.put(PagerCommand(update = null, scroll = index))
         _pagerQueue.value = _pagerQueue.value.copy(index = index)
     }
 
@@ -156,35 +145,24 @@ constructor(
         // Other types of queue changes preserve the current song.
         if (change.type == QueueChange.Type.SONG) {
             L.d("Queue changed, updating current song")
-            _song.value = playbackManager.currentSong
+            song.value = playbackManager.currentSong
         }
 
-        _pagerCommand.put(
+        pagerCommand.put(
             PagerCommand(
                 update = change.instructions,
-                scroll = index.takeIf { change.type != QueueChange.Type.MAPPING }
+                scroll = index.takeIf { change.type != QueueChange.Type.MAPPING },
             )
         )
-        _pagerQueue.value = PagerQueue(
-            queue = queue,
-            index = index
-        )
+        _pagerQueue.value = PagerQueue(queue = queue, index = index)
     }
 
     override fun onQueueReordered(queue: List<Song>, index: Int, isShuffled: Boolean) {
         L.d("Queue completely changed, updating current song")
-        _isShuffled.value = isShuffled
+        this.isShuffled.value = isShuffled
 
-        _pagerCommand.put(
-            PagerCommand(
-                update = UpdateInstructions.Replace(0),
-                scroll = index
-            )
-        )
-        _pagerQueue.value = PagerQueue(
-            queue = queue,
-            index = index
-        )
+        pagerCommand.put(PagerCommand(update = UpdateInstructions.Replace(0), scroll = index))
+        _pagerQueue.value = PagerQueue(queue = queue, index = index)
     }
 
     override fun onNewPlayback(
@@ -194,46 +172,37 @@ constructor(
         isShuffled: Boolean,
     ) {
         L.d("New playback started, updating playback information")
-        _song.value = playbackManager.currentSong
+        song.value = playbackManager.currentSong
         _parent.value = parent
-        _isShuffled.value = isShuffled
+        this.isShuffled.value = isShuffled
 
-        _pagerCommand.put(
-            PagerCommand(
-                update = UpdateInstructions.Replace(0),
-                scroll = index
-            )
-        )
-        _pagerQueue.value = PagerQueue(
-            queue = queue,
-            index = index
-        )
+        pagerCommand.put(PagerCommand(update = UpdateInstructions.Replace(0), scroll = index))
+        _pagerQueue.value = PagerQueue(queue = queue, index = index)
     }
 
     override fun onProgressionChanged(progression: Progression) {
         L.d("Player state changed, starting new position polling")
-        _isPlaying.value = progression.isPlaying
+        isPlaying.value = progression.isPlaying
         // Still need to update the position now due to co-routine launch delays
-        _positionDs.value = progression.calculateElapsedPositionMs().msToDs()
+        positionDs.value = progression.calculateElapsedPositionMs().msToDs()
         // Replace the previous position co-routine with a new one that uses the new
         // state information.
         lastPositionJob?.cancel()
-        lastPositionJob =
-            viewModelScope.launch {
-                while (true) {
-                    _positionDs.value = progression.calculateElapsedPositionMs().msToDs()
-                    // Wait a deci-second for the next position tick.
-                    delay(100)
-                }
+        lastPositionJob = viewModelScope.launch(Dispatchers.Default) {
+            while (true) {
+                positionDs.value = progression.calculateElapsedPositionMs().msToDs()
+                // Wait a deci-second for the next position tick.
+                delay(100.milliseconds)
             }
+        }
     }
 
     override fun onRepeatModeChanged(repeatMode: RepeatMode) {
-        _repeatMode.value = repeatMode
+        this.repeatMode.value = repeatMode
     }
 
     override fun onBarActionChanged() {
-        _currentBarAction.value = playbackSettings.barAction
+        currentBarAction.value = playbackSettings.barAction
     }
 
     // --- PLAYING FUNCTIONS ---
@@ -344,12 +313,12 @@ constructor(
     }
 
     private fun startPlaybackDecision(decision: PlaybackDecision) {
-        val existing = _playbackDecision.flow.value
+        val existing = playbackDecision.flow.value
         if (existing != null) {
             L.d("Already handling decision $existing, ignoring $decision")
             return
         }
-        _playbackDecision.put(decision)
+        playbackDecision.put(decision)
     }
 
     /**
@@ -493,7 +462,8 @@ constructor(
         val currentPositionMs = playbackManager.progression.calculateElapsedPositionMs()
         val currentSong = playbackManager.currentSong
         if (currentSong != null) {
-            val newPositionMs = (currentPositionMs + STEP_INCREMENT).coerceAtMost(currentSong.durationMs)
+            val newPositionMs =
+                (currentPositionMs + STEP_INCREMENT).coerceAtMost(currentSong.durationMs)
             playbackManager.seekTo(newPositionMs)
         }
     }
@@ -676,7 +646,7 @@ constructor(
             L.d("Already opening $existing, ignoring opening $panel")
             return
         }
-        _openPanel.put(panel)
+        openPanel.put(panel)
     }
 
     private companion object {
@@ -684,16 +654,9 @@ constructor(
     }
 }
 
+data class PagerQueue(val queue: List<Song>, val index: Int)
 
-data class PagerQueue(
-    val queue: List<Song>,
-    val index: Int
-)
-
-data class PagerCommand(
-    val update: UpdateInstructions?,
-    val scroll: Int?
-)
+data class PagerCommand(val update: UpdateInstructions?, val scroll: Int?)
 
 /**
  * Command for controlling the main playback panel UI.

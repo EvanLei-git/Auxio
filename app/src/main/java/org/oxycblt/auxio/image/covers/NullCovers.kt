@@ -31,7 +31,7 @@ class NullCovers(private val storage: CoverStorage) : MutableCovers<NullCover> {
     override suspend fun create(file: File, metadata: Metadata) = CoverResult.Hit(NullCover)
 
     override suspend fun cleanup(excluding: Collection<Cover>) {
-        storage.ls(setOf()).map { storage.rm(it) }
+        storage.ls(setOf()).forEach { storage.rm(it) }
     }
 }
 

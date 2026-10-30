@@ -18,6 +18,7 @@
  
 package org.oxycblt.auxio.list.recycler
 
+import android.annotation.SuppressLint
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.view.View
@@ -111,6 +112,7 @@ abstract class MaterialDragCallback : ItemTouchHelper.Callback() {
         return clampedAbsVelocity * sign(viewSizeOutOfBounds.toDouble()).toInt()
     }
 
+    @SuppressLint("PrivateResource")
     final override fun onChildDraw(
         c: Canvas,
         recyclerView: RecyclerView,

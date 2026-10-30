@@ -47,15 +47,14 @@ class QueueViewModel @Inject constructor(private val playbackManager: PlaybackSt
     private val _queueInstructions = MutableEvent<UpdateInstructions>()
     /** Instructions for how to update [queue] in the UI. */
     val queueInstructions: Event<UpdateInstructions> = _queueInstructions
-    private val _scrollTo = MutableEvent<Int>()
+
     /** Controls whether the queue should be force-scrolled to a particular location. */
     val scrollTo: Event<Int>
-        get() = _scrollTo
+        field = MutableEvent<Int>()
 
-    private val _index = MutableStateFlow(playbackManager.index)
     /** The index of the currently playing song in the queue. */
     val index: StateFlow<Int>
-        get() = _index
+        field = MutableStateFlow(playbackManager.index)
 
     init {
         playbackManager.addListener(this)
@@ -63,8 +62,8 @@ class QueueViewModel @Inject constructor(private val playbackManager: PlaybackSt
 
     override fun onIndexMoved(index: Int) {
         L.d("Index moved, synchronizing and scrolling to new position")
-        _scrollTo.put(index)
-        _index.value = index
+        scrollTo.put(index)
+        this.index.value = index
     }
 
     override fun onQueueChanged(queue: List<Song>, index: Int, change: QueueChange) {
@@ -75,7 +74,7 @@ class QueueViewModel @Inject constructor(private val playbackManager: PlaybackSt
         if (change.type != QueueChange.Type.MAPPING) {
             // Index changed, make sure it remains updated without actually scrolling to it.
             L.d("Index changed with queue, synchronizing new position")
-            _index.value = index
+            this.index.value = index
         }
     }
 
@@ -83,9 +82,9 @@ class QueueViewModel @Inject constructor(private val playbackManager: PlaybackSt
         // Queue changed completely -> Replace queue, update index
         L.d("Queue changed completely, replacing queue and position")
         _queueInstructions.put(UpdateInstructions.Replace(0))
-        _scrollTo.put(index)
+        scrollTo.put(index)
         _queue.value = queue
-        _index.value = index
+        this.index.value = index
     }
 
     override fun onNewPlayback(
@@ -97,13 +96,12 @@ class QueueViewModel @Inject constructor(private val playbackManager: PlaybackSt
         // Entirely new queue -> Replace queue, update index
         L.d("New playback, replacing queue and position")
         _queueInstructions.put(UpdateInstructions.Replace(0))
-        _scrollTo.put(index)
+        scrollTo.put(index)
         _queue.value = queue
-        _index.value = index
+        this.index.value = index
     }
 
     override fun onCleared() {
-        super.onCleared()
         playbackManager.removeListener(this)
     }
 

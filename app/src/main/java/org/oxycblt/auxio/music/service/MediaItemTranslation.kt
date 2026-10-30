@@ -36,7 +36,6 @@ import org.oxycblt.auxio.util.getPlural
 import org.oxycblt.musikr.Album
 import org.oxycblt.musikr.Artist
 import org.oxycblt.musikr.Genre
-import org.oxycblt.musikr.Music
 import org.oxycblt.musikr.Music.UID
 import org.oxycblt.musikr.MusicParent
 import org.oxycblt.musikr.Playlist
@@ -47,7 +46,7 @@ sealed interface MediaSessionUID {
         override fun toString() = "$MICRO_ID_CATEGORY${node.microId}"
     }
 
-    data class SingleItem(val uid: Music.UID) : MediaSessionUID {
+    data class SingleItem(val uid: UID) : MediaSessionUID {
         override fun toString() = "$MICRO_ID_ITEM$uid"
     }
 
@@ -76,8 +75,8 @@ sealed interface MediaSessionUID {
             }
             return when (parts[0]) {
                 ID_CATEGORY -> Tab(TabNode.fromString(parts[1]) ?: return null)
-                ID_ITEM -> SingleItem(Music.UID.fromString(parts[1]) ?: return null)
-                else -> return null
+                ID_ITEM -> SingleItem(UID.fromString(parts[1]) ?: return null)
+                else -> null
             }
         }
     }

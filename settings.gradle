@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild('media/build-logic-settings')
     repositories {
         google()
         mavenCentral()
@@ -7,6 +8,7 @@ pluginManagement {
 }
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+    id 'gradlebuild.media3-settings-logic'
 }
 
 dependencyResolutionManagement {
@@ -17,9 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-gradle.ext.androidxMediaModulePrefix = 'media-'
-gradle.ext.androidxMediaProjectName = 'media-'
-apply from: file("media/core_settings.gradle")
+includeMedia3.execute(file('media'))
 
 rootProject.name = "Auxio"
 include ':app'

@@ -51,7 +51,6 @@ class PlaybackBarFragment : ViewBindingFragment<FragmentPlaybackBarBinding>() {
         savedInstanceState: Bundle?,
     ) {
         super.onBindingCreated(binding, savedInstanceState)
-        val context = requireContext()
 
         // --- UI SETUP ---
         binding.root.apply {

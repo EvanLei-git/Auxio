@@ -100,6 +100,7 @@ abstract class MenuDialogFragment<M : Menu> :
         binding.menuOptionRecycler.adapter = null
     }
 
+    @SuppressLint("RestrictedApi")
     private fun updateMenu(menu: Menu?) {
         if (menu == null) {
             L.d("No menu to show, navigating away")

@@ -97,8 +97,8 @@ class WidgetProvider : AppWidgetProvider() {
             mapOf(
                 SizeF(180f, 48f) to newThinStickLayout(context, state),
                 SizeF(304f, 48f) to newWideStickLayout(context, state),
-                SizeF(180f, 100f) to newThinWaferLayout(context, uiSettings, state),
-                SizeF(304f, 100f) to newWideWaferLayout(context, uiSettings, state),
+                SizeF(180f, 80f) to newThinWaferLayout(context, uiSettings, state),
+                SizeF(304f, 80f) to newWideWaferLayout(context, uiSettings, state),
                 SizeF(180f, 152f) to defaultLayout,
                 SizeF(304f, 152f) to newWideDockedLayout(context, uiSettings, state),
                 SizeF(180f, 272f) to newThinPaneLayout(context, uiSettings, state),
@@ -119,7 +119,7 @@ class WidgetProvider : AppWidgetProvider() {
 
         // Manually update AppWidgetManager with the new views.
         val component = ComponentName(context, this::class.java)
-        while (victims.size > 0) {
+        while (victims.isNotEmpty()) {
             try {
                 awm.updateAppWidgetCompat(context, component, views)
                 L.d("Successfully updated RemoteViews layout")
@@ -309,7 +309,10 @@ class WidgetProvider : AppWidgetProvider() {
             setImageViewBitmap(R.id.widget_cover, state.cover)
             setContentDescription(
                 R.id.widget_cover,
-                context.getString(R.string.desc_album_cover, state.song.album.name.resolve(context)),
+                context.getString(
+                    R.string.desc_album_cover,
+                    state.song.album.name.resolve(context),
+                ),
             )
         } else {
             discardCover(context)

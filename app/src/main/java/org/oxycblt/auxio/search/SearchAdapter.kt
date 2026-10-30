@@ -89,21 +89,28 @@ class SearchAdapter(private val listener: SelectableListListener<Music>) :
         val DIFF_CALLBACK =
             object : SimpleDiffCallback<Item>() {
                 override fun areContentsTheSame(oldItem: Item, newItem: Item) =
-                    when {
-                        oldItem is Song && newItem is Song ->
+                    when (oldItem) {
+                        is Song if newItem is Song ->
                             SongViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is Album && newItem is Album ->
+
+                        is Album if newItem is Album ->
                             AlbumViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is Artist && newItem is Artist ->
+
+                        is Artist if newItem is Artist ->
                             ArtistViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is Genre && newItem is Genre ->
+
+                        is Genre if newItem is Genre ->
                             GenreViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is Playlist && newItem is Playlist ->
+
+                        is Playlist if newItem is Playlist ->
                             PlaylistViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is PlainDivider && newItem is PlainDivider ->
+
+                        is PlainDivider if newItem is PlainDivider ->
                             DividerViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is BasicHeader && newItem is BasicHeader ->
+
+                        is BasicHeader if newItem is BasicHeader ->
                             BasicHeaderViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
+
                         else -> false
                     }
             }

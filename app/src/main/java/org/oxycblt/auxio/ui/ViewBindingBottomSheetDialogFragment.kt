@@ -114,7 +114,7 @@ abstract class ViewBindingBottomSheetDialogFragment<VB : ViewBinding> :
         L.d("Fragment destroyed")
     }
 
-    private inner class TweakedBottomSheetDialog
+    private class TweakedBottomSheetDialog
     @JvmOverloads
     constructor(context: Context, @StyleRes theme: Int = 0) :
         BackportBottomSheetDialog(context, theme) {

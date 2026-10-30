@@ -30,6 +30,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
+import android.graphics.text.LineBreaker
 import android.os.Build
 import android.text.Layout
 import android.util.AttributeSet
@@ -37,22 +38,18 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewConfiguration
-import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.FrameLayout
 import androidx.annotation.AttrRes
+import androidx.core.graphics.withScale
 import androidx.core.view.isEmpty
 import androidx.core.view.isInvisible
 import androidx.core.view.updatePaddingRelative
 import androidx.core.widget.TextViewCompat
-import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
-import androidx.dynamicanimation.animation.SpringForce
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.R as MR
-import com.google.android.material.motion.MotionUtils
 import com.google.android.material.textview.MaterialTextView
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -101,6 +98,7 @@ import org.oxycblt.auxio.util.systemBarInsetsCompat
  *
  * @author Hai Zhang, Alexander Capehart (OxygenCobalt)
  */
+@SuppressLint("PrivateResource")
 class FastScrollRecyclerView
 @JvmOverloads
 constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr: Int = 0) :
@@ -111,10 +109,7 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
     private var thumbAnimator: SpringAnimation? = null
 
     @SuppressLint("InflateParams")
-    private val thumbView =
-        context.inflater.inflate(R.layout.view_scroll_thumb, null).apply {
-            translationX = thumbWidth.toFloat()
-        }
+    private val thumbView = context.inflater.inflate(R.layout.view_scroll_thumb, null)
     private val thumbPadding = Rect(0, 0, 0, 0)
     private var thumbOffset = 0
 
@@ -182,8 +177,8 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
             addView(
                 popupTextView,
                 FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    LayoutParams.MATCH_PARENT,
+                    LayoutParams.MATCH_PARENT,
                     Gravity.CENTER,
                 ),
             )
@@ -195,30 +190,8 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
             scale = 0.5f
             alpha = 0.0f
         }
-    private val popupTextStaggerDelayMillis =
-        MotionUtils.resolveThemeDuration(context, MR.attr.motionDurationShort2, 100).toLong()
-    private val popupSpatialSpring =
-        MotionUtils.resolveThemeSpringForce(
-            context,
-            MR.attr.motionSpringFastSpatial,
-            MR.style.Motion_Material3_Spring_Standard_Fast_Spatial,
-        )
-    private val popupEffectsSpring =
-        MotionUtils.resolveThemeSpringForce(
-            context,
-            MR.attr.motionSpringDefaultEffects,
-            MR.style.Motion_Material3_Spring_Standard_Default_Effects,
-        )
     private var popupShapeScaleAnimation: SpringAnimation? = null
     private var popupShapeAlphaAnimation: SpringAnimation? = null
-    private var popupTextScaleAnimation: SpringAnimation? = null
-    private var popupTextAlphaAnimation: SpringAnimation? = null
-    private val popupTextRevealRunnable = Runnable {
-        if (showingPopup) {
-            popupShapeScaleAnimation?.cancel()
-            popupShapeScaleAnimation = popupScaleSpring.scale(popupView, 0f)
-        }
-    }
     private var showingPopup = false
 
     // Touch
@@ -306,6 +279,13 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
                 }
             }
         )
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+        if (!showingThumb) {
+            thumbView.translationX = if (isRtl) -thumbWidth.toFloat() else thumbWidth.toFloat()
+        }
     }
 
     // --- RECYCLERVIEW EVENT MANAGEMENT ---
@@ -398,26 +378,24 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
             MeasureSpec.makeMeasureSpec(popupSize, MeasureSpec.EXACTLY),
         )
 
-        val popupWidth = popupSize
-        val popupHeight = popupSize
         val popupLeft =
-            if (layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            if (isRtl) {
                 thumbPadding.left + thumbWidth + popupLayoutParams.leftMargin
             } else {
-                width - thumbPadding.right - thumbWidth - popupLayoutParams.rightMargin - popupWidth
+                width - thumbPadding.right - thumbWidth - popupLayoutParams.rightMargin - popupSize
             }
 
-        val popupAnchorY = popupHeight / 2
+        val popupAnchorY = popupSize / 2
         val thumbAnchorY = thumbView.height / 2
 
         val popupTop =
             (thumbTop + thumbAnchorY - popupAnchorY)
                 .coerceAtLeast(thumbPadding.top + popupLayoutParams.topMargin)
                 .coerceAtMost(
-                    height - thumbPadding.bottom - popupLayoutParams.bottomMargin - popupHeight
+                    height - thumbPadding.bottom - popupLayoutParams.bottomMargin - popupSize
                 )
 
-        popupView.layout(popupLeft, popupTop, popupLeft + popupWidth, popupTop + popupHeight)
+        popupView.layout(popupLeft, popupTop, popupLeft + popupSize, popupTop + popupSize)
     }
 
     override fun onScrolled(dx: Int, dy: Int) {
@@ -561,7 +539,11 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
 
         showingThumb = false
         thumbAnimator?.cancel()
-        thumbAnimator = thumbTranslateOutSpring.translateX(thumbView, thumbWidth.toFloat())
+        thumbAnimator =
+            thumbTranslateOutSpring.translateX(
+                thumbView,
+                if (isRtl) -thumbWidth.toFloat() else thumbWidth.toFloat(),
+            )
     }
 
     private fun showPopup() {
@@ -600,13 +582,11 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
             )
             ellipsize = null
             gravity = Gravity.CENTER
-            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            textAlignment = TEXT_ALIGNMENT_CENTER
             includeFontPadding = false
             setHorizontallyScrolling(false)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                breakStrategy = Layout.BREAK_STRATEGY_SIMPLE
-                hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
-            }
+            breakStrategy = LineBreaker.BREAK_STRATEGY_SIMPLE
+            hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
         }
 
     private fun resetPopupTextAutoScaleConfig() {
@@ -686,33 +666,6 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
         )
     }
 
-    private fun springTo(
-        startValue: Float,
-        finalValue: Float,
-        springTemplate: SpringForce,
-        minimumVisibleChange: Float,
-        dampingOverride: Float? = null,
-        update: (Float) -> Unit,
-    ): SpringAnimation {
-        val animation =
-            SpringAnimation(FloatValueHolder(startValue)).apply {
-                spring =
-                    SpringForce().apply {
-                        dampingRatio = dampingOverride ?: springTemplate.dampingRatio
-                        stiffness = springTemplate.stiffness
-                        finalPosition = finalValue
-                    }
-                setStartValue(startValue)
-                setMinimumVisibleChange(minimumVisibleChange)
-                addUpdateListener { _, value, _ -> update(value) }
-                addEndListener { _, canceled, value, _ ->
-                    update(if (canceled) value else finalValue)
-                }
-            }
-        animation.animateToFinalPosition(finalValue)
-        return animation
-    }
-
     private fun doPopupVibration() {
         performHapticFeedback(
             if (Build.VERSION.SDK_INT >= 27) {
@@ -756,8 +709,6 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
 
     private companion object {
         const val AUTO_HIDE_SCROLLBAR_DELAY_MILLIS = 500
-        const val POPUP_SHAPE_HIDDEN_SCALE = 0.62f
-        const val POPUP_TEXT_HIDDEN_SCALE = 0.78f
         const val POPUP_TEXT_SINGLE_LINE_COUNT = 1
     }
 
@@ -771,10 +722,7 @@ private class SoftBurstPopupDrawable(context: Context) : Drawable() {
     private val pathBounds = RectF()
     private val paint =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color =
-                context
-                    .getAttrColorCompat(com.google.android.material.R.attr.colorSecondary)
-                    .defaultColor
+            color = context.getAttrColorCompat(MR.attr.colorSecondary).defaultColor
             style = Paint.Style.FILL
         }
 
@@ -850,15 +798,14 @@ private class SoftBurstPopupDrawable(context: Context) : Drawable() {
             return
         }
 
-        val checkpoint = canvas.save()
-        canvas.scale(revealScale, revealScale, pathBounds.centerX(), pathBounds.centerY())
-        canvas.rotate(
-            baseRotationDegrees + scrollRotationDegrees,
-            pathBounds.centerX(),
-            pathBounds.centerY(),
-        )
-        canvas.drawPath(fittedPath, paint)
-        canvas.restoreToCount(checkpoint)
+        canvas.withScale(revealScale, revealScale, pathBounds.centerX(), pathBounds.centerY()) {
+            canvas.rotate(
+                baseRotationDegrees + scrollRotationDegrees,
+                pathBounds.centerX(),
+                pathBounds.centerY(),
+            )
+            canvas.drawPath(fittedPath, paint)
+        }
     }
 
     override fun setAlpha(alpha: Int) {

@@ -1,12 +1,27 @@
+/*
+ * Copyright (c) 2026 Auxio Project
+ * CarouselTransformer.kt is part of Auxio.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+ 
 package org.oxycblt.auxio.playback.ui.swiper
 
 import android.graphics.RectF
 import android.view.View
-import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.carousel.MaskableFrameLayout
-import com.google.android.material.math.MathUtils.lerp
-import kotlin.math.abs
 
 class CarouselTransformer : ViewPager2.PageTransformer {
     override fun transformPage(page: View, position: Float) {
@@ -17,12 +32,18 @@ class CarouselTransformer : ViewPager2.PageTransformer {
         val width = page.width.toFloat()
         val height = page.height.toFloat()
 
+        if (width <= 0f || height <= 0f) {
+            return
+        }
+
         // pin the page
         // normally the page's layout is controlled by linearlayoutmanager which we dont
         // like since it means we cant arrange them in the carousel
         // so we use translationX to fix them to the same pos so we can remask them however
         // we want to create our effect
         page.translationX = -position * width
+
+        page.alpha = 1f
 
         val p =
             when {
@@ -54,17 +75,14 @@ class CarouselTransformer : ViewPager2.PageTransformer {
             when {
                 // gap is not fully grown yet, so we do the gap size * how close we are to a fully
                 // grown gap
-                p < gapEnterBreakpoint ->
-                    maxGap * (p / gapEnterBreakpoint)
+                p < gapEnterBreakpoint -> maxGap * (p / gapEnterBreakpoint)
 
                 // gap should be shrinking, so we need to downscale maxgap by how close we are
                 // actually to the end
-                p > gapExitBreakpoint ->
-                    maxGap * ((1f - p) / (1f - gapExitBreakpoint))
+                p > gapExitBreakpoint -> maxGap * ((1f - p) / (1f - gapExitBreakpoint))
 
                 // not growing or shrinking
-                else ->
-                    maxGap
+                else -> maxGap
             }
 
         // then we need to get how much we actually want to reveal the incoming covers post-gap

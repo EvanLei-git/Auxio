@@ -102,14 +102,18 @@ constructor(
 
     fun getRoot() = BrowserRoot(MediaSessionUID.Tab(TabNode.Root).toString(), Bundle())
 
-    fun getItem(mediaId: String, result: Result<MediaItem>) =
-        result.dispatch { musicBrowser.getItem(mediaId) }
+    fun getItem(mediaId: String, result: Result<MediaItem>) = result.dispatch {
+        musicBrowser.getItem(mediaId)
+    }
 
     fun getChildren(mediaId: String, maxTabs: Int, result: Result<MutableList<MediaItem>>) =
-        result.dispatch { musicBrowser.getChildren(mediaId, maxTabs)?.toMutableList() }
+        result.dispatch {
+            musicBrowser.getChildren(mediaId, maxTabs)?.toMutableList()
+        }
 
-    fun search(query: String, result: Result<MutableList<MediaItem>>) =
-        result.dispatchAsync { musicBrowser.search(query) }
+    fun search(query: String, result: Result<MutableList<MediaItem>>) = result.dispatchAsync {
+        musicBrowser.search(query)
+    }
 
     private fun <T> Result<T>.dispatch(body: () -> T?) {
         try {

@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.ItemMusicLocationBinding
 import org.oxycblt.auxio.databinding.ItemNoLocationsBinding
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.util.context
 import org.oxycblt.auxio.util.inflater
 import org.oxycblt.musikr.fs.Location
@@ -118,7 +117,7 @@ class LocationAdapter<T : Location>(private val listener: Listener) :
 }
 
 class LocationViewHolder<T : Location>(private val binding: ItemMusicLocationBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
 
     fun bind(location: T, listener: LocationAdapter.Listener) {
         binding.locationPath.text = location.path.resolve(binding.context)
@@ -140,7 +139,7 @@ class LocationViewHolder<T : Location>(private val binding: ItemMusicLocationBin
 }
 
 class EmptyLocationViewHolder(private val binding: ItemNoLocationsBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
 
     fun bind() {
         binding.locationPath.text = binding.context.getString(R.string.lbl_no_folders)

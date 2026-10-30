@@ -22,6 +22,7 @@ import android.content.Context
 import android.content.Intent
 import android.support.v4.media.session.MediaSessionCompat
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -89,14 +90,11 @@ private constructor(
 
     private fun scheduleAutoStop() {
         autoStopJob?.cancel()
-        autoStopJob =
-            scope.launch {
-                delay(AUTO_STOP_DELAY_MS)
-                L.d(
-                    "Auto-stop timer expired after ${AUTO_STOP_DELAY_MS / 60000} minutes of inactivity"
-                )
-                playbackManager.endSession()
-            }
+        autoStopJob = scope.launch {
+            delay(AUTO_STOP_DELAY_MS.milliseconds)
+            L.d("Auto-stop timer expired after ${AUTO_STOP_DELAY_MS / 60000} minutes of inactivity")
+            playbackManager.endSession()
+        }
     }
 
     private fun cancelAutoStop() {

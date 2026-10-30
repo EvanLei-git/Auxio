@@ -19,7 +19,6 @@
 package org.oxycblt.musikr.pipeline
 
 import android.content.Context
-import android.util.Log
 import kotlinx.coroutines.channels.Channel
 import org.oxycblt.musikr.BuildConfig
 import org.oxycblt.musikr.Config
@@ -67,15 +66,8 @@ private class EvaluateStepImpl(
 
         // Render graph to Graphviz in debug mode
         if (BuildConfig.DEBUG) {
-            try {
-                val fileName = "music_graph_debug.dot"
-                graph.renderToGraphviz(context, fileName)
-                val filePath = context.filesDir.resolve(fileName).absolutePath
-                Log.d("EvaluateStep", "Music graph rendered to: $filePath")
-                Log.d("EvaluateStep", "To pull the file, run: adb pull $filePath")
-            } catch (e: Exception) {
-                Log.e("EvaluateStep", "Failed to render music graph", e)
-            }
+            val fileName = "music_graph_debug.dot"
+            graph.renderToGraphviz(context, fileName)
         }
 
         return libraryFactory.create(graph, storedPlaylists, playlistInterpreter)

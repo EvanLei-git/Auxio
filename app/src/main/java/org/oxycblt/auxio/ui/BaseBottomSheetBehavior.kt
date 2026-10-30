@@ -18,6 +18,7 @@
  
 package org.oxycblt.auxio.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -96,6 +97,7 @@ abstract class BaseBottomSheetBehavior<V : View>(context: Context, attributeSet:
     override fun shouldExpandOnUpwardDrag(dragDurationMillis: Long, yPositionPercentage: Float) =
         true
 
+    @SuppressLint("PrivateResource")
     override fun onLayoutChild(parent: CoordinatorLayout, child: V, layoutDirection: Int): Boolean {
         val layout = super.onLayoutChild(parent, child, layoutDirection)
         // Don't repeat redundant initialization.

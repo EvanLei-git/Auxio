@@ -51,25 +51,24 @@ constructor(context: Context, attrs: AttributeSet? = null, @AttrRes defStyleAttr
     private var scrollingChild: View? = null
 
     private val tConsumed = IntArray(2)
-    private val onPreDraw =
-        ViewTreeObserver.OnPreDrawListener {
-            val child = findScrollingChild()
+    private val onPreDraw = ViewTreeObserver.OnPreDrawListener {
+        val child = findScrollingChild()
 
-            if (child != null) {
-                val coordinator = parent as CoordinatorLayout
-                coordinatorLayoutBehavior?.onNestedPreScroll(
-                    coordinator,
-                    this,
-                    coordinator,
-                    0,
-                    0,
-                    tConsumed,
-                    0,
-                )
-            }
-
-            true
+        if (child != null) {
+            val coordinator = parent as CoordinatorLayout
+            coordinatorLayoutBehavior?.onNestedPreScroll(
+                coordinator,
+                this,
+                coordinator,
+                0,
+                0,
+                tConsumed,
+                0,
+            )
         }
+
+        true
+    }
 
     init {
         fitsSystemWindows = true

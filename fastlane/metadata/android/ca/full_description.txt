@@ -1,0 +1,24 @@
+L'Auxio és un reproductor de música local amb una interfície d'usuari ràpida i fiable, sense les nombroses funcions inútils d'altres reproductors. Creat amb biblioteques modernes de reproducció multimèdia, l'Auxio ofereix una gestió de la fonoteca i una qualitat d'escolta superiors a les d'altres aplicacions que fan servir funcionalitats obsoletes d'Android. En resum, <b>reprodueix música.</b>
+
+<b>Funcionalitats</b>
+
+- Reproducció basada en el Media3 ExoPlayer
+- Interfície ràpida inspirada en les últimes directrius de Material Design
+- Experiència d'usuari amb criteri propi, que prioritza la facilitat d'ús per sobre dels casos excepcionals
+- Comportament personalitzable
+- Compatible amb números de disc, diversos artistes, tipus de publicació, dates precises/originals, etiquetes per a ordenar i més
+- Sistema avançat d'artistes que unifica els artistes i els artistes d'àlbum
+- Gestió de carpetes compatible amb targetes SD
+- Funcionalitat fiable de llistes de reproducció
+- Persistència de l'estat de reproducció
+- Compatible amb l'Android Auto
+- Reproducció sense pauses automàtica
+- Compatible amb ReplayGain (en fitxers MP3, FLAC, OGG, OPUS i MP4)
+- Compatible amb equalitzadors externs (com ara el Wavelet)
+- Interfície de vora a vora
+- Compatible amb caràtules incrustades
+- Funcionalitat de cerca
+- Reproducció automàtica amb auriculars
+- Ginys elegants que s'adapten automàticament a la seva mida
+- Totalment privat i fora de línia
+- Sense caràtules d'àlbum arrodonides (si les voleu)

@@ -47,11 +47,10 @@ internal fun String.parseSlashPositionField() =
  *
  * @see transformPositionField
  */
-internal fun parseXiphPositionField(pos: String?, total: String?) =
-    pos?.let { posStr ->
-        posStr.toIntOrNull()?.let { transformPositionField(it, total?.toIntOrNull()) }
-            ?: posStr.parseSlashPositionField()
-    }
+internal fun parseXiphPositionField(pos: String?, total: String?) = pos?.let { posStr ->
+    posStr.toIntOrNull()?.let { transformPositionField(it, total?.toIntOrNull()) }
+        ?: posStr.parseSlashPositionField()
+}
 
 /**
  * Transform a raw position + total field into a position a way that tolerates placeholder values.

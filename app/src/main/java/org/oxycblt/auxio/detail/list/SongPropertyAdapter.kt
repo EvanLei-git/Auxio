@@ -19,7 +19,6 @@
 package org.oxycblt.auxio.detail.list
 
 import android.text.format.Formatter
-import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.recyclerview.widget.RecyclerView
@@ -27,7 +26,6 @@ import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.ItemSongPropertyBinding
 import org.oxycblt.auxio.list.adapter.FlexibleListAdapter
 import org.oxycblt.auxio.list.adapter.SimpleDiffCallback
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.music.resolve
 import org.oxycblt.auxio.music.resolveNames
 import org.oxycblt.auxio.playback.formatDurationMs
@@ -95,7 +93,7 @@ data class SongProperty(@StringRes val name: Int, val value: Value) {
  * @author Alexander Capehart (OxygenCobalt)
  */
 class SongPropertyViewHolder private constructor(private val binding: ItemSongPropertyBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
     fun bind(property: SongProperty) {
         val context = binding.context
         binding.propertyName.hint = context.getString(property.name)
@@ -161,8 +159,10 @@ class SongPropertyViewHolder private constructor(private val binding: ItemSongPr
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            SongPropertyViewHolder(ItemSongPropertyBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            SongPropertyViewHolder(
+                ItemSongPropertyBinding.inflate(parent.context.inflater, parent, false)
+            )
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK =

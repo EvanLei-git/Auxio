@@ -83,10 +83,10 @@ constructor(
         playbackManager.play(requireNotNull(command) { "Invalid playback configuration" })
     }
 
-    override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
-        super.onPrepareFromSearch(query, extras)
-        // STUB, can't tell when this is called
-    }
+    //    override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
+    //        super.onPrepareFromSearch(query, extras)
+    // STUB, can't tell when this is called
+    //    }
 
     override fun onPlayFromSearch(query: String, extras: Bundle) {
         super.onPlayFromSearch(query, extras)

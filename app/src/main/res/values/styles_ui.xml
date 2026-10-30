@@ -28,11 +28,17 @@
         <item name="tabTextAppearance">?attr/textAppearanceTitleSmallEmphasized</item>
     </style>
 
+    <style name="Widget.Auxio.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmallEmphasized</item>
+    </style>
+
     <style name="Widget.Auxio.Slider" parent="Widget.Material3.Slider">
         <item name="labelBehavior">gone</item>
         <item name="tickVisible">false</item>
         <item name="trackStopIndicatorSize">0dp</item>
         <item name="trackHeight">@dimen/slider_track_height</item>
+        <item name="trackCornerSize">@dimen/slider_track_height</item>
+        <item name="trackInsideCornerSize">@dimen/slider_track_height</item>
         <item name="thumbHeight">@dimen/slider_thumb_height</item>
     </style>
 
@@ -211,6 +217,7 @@
 
     <style name="Widget.Auxio.TextView.Base" parent="Widget.AppCompat.TextView">
         <item name="android:textAlignment">viewStart</item>
+        <item name="emojiCompatEnabled">false</item>
     </style>
 
     <style name="Widget.Auxio.TextView.Item.Base" parent="Widget.Auxio.TextView.Base">

@@ -116,8 +116,9 @@ private class M3UImpl(private val volumeManager: VolumeManager) : M3U() {
             // based on the programs that generated it. I more or less have to consider any possible
             // interpretation as valid.
             val interpretations = interpretPath(unlikelyToBeNull(path))
-            val possibilities =
-                interpretations.flatMap { expandInterpretation(it, workingDirectory, volumes) }
+            val possibilities = interpretations.flatMap {
+                expandInterpretation(it, workingDirectory, volumes)
+            }
 
             paths.add(possibilities)
         }
@@ -156,12 +157,11 @@ private class M3UImpl(private val volumeManager: VolumeManager) : M3U() {
         val relativeInterpretation =
             Path(workingDirectory.volume, path.components.absoluteTo(workingDirectory.components))
         val volumeExactMatch = volumes.find { it.components?.contains(path.components) == true }
-        val volumeInterpretation =
-            volumeExactMatch?.let {
-                val components =
-                    unlikelyToBeNull(volumeExactMatch.components).containing(path.components)
-                Path(volumeExactMatch, components)
-            }
+        val volumeInterpretation = volumeExactMatch?.let {
+            val components =
+                unlikelyToBeNull(volumeExactMatch.components).containing(path.components)
+            Path(volumeExactMatch, components)
+        }
         return if (path.likelyAbsolute) {
             listOfNotNull(volumeInterpretation, absoluteInterpretation, relativeInterpretation)
         } else {
@@ -264,17 +264,17 @@ private class M3UImpl(private val volumeManager: VolumeManager) : M3U() {
         var relativeComponents = Components.parseUnix(".")
 
         // TODO: Simplify this logic
-        when {
-            commonIndex == components.size && commonIndex == workingDirectory.components.size -> {
+        when (commonIndex) {
+            components.size if commonIndex == workingDirectory.components.size -> {
                 // The paths are the same. This shouldn't occur.
             }
-            commonIndex == components.size -> {
+            components.size -> {
                 // The working directory is deeper in the path, backtrack.
                 for (i in 0..<workingDirectory.components.size - commonIndex) {
                     relativeComponents = relativeComponents.child("..")
                 }
             }
-            commonIndex == workingDirectory.components.size -> {
+            workingDirectory.components.size -> {
                 // Working directory is shallower than the path, can just append the
                 // non-common remainder of the path
                 relativeComponents = relativeComponents.child(depth(commonIndex))

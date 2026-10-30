@@ -40,17 +40,15 @@ import timber.log.Timber as L
 @HiltViewModel
 class DetailPickerViewModel @Inject constructor(private val musicRepository: MusicRepository) :
     ViewModel(), MusicRepository.UpdateListener {
-    private val _artistChoices = MutableStateFlow<ArtistShowChoices?>(null)
     /** The current set of [Artist] choices to show in the picker, or null if to show nothing. */
     val artistChoices: StateFlow<ArtistShowChoices?>
-        get() = _artistChoices
+        field = MutableStateFlow<ArtistShowChoices?>(null)
 
     init {
         musicRepository.addUpdateListener(this)
     }
 
     override fun onCleared() {
-        super.onCleared()
         musicRepository.removeUpdateListener(this)
     }
 
@@ -58,8 +56,8 @@ class DetailPickerViewModel @Inject constructor(private val musicRepository: Mus
         if (!changes.deviceLibrary) return
         val library = musicRepository.library ?: return
         // Need to sanitize different items depending on the current set of choices.
-        _artistChoices.value = _artistChoices.value?.sanitize(library)
-        L.d("Updated artist choices: ${_artistChoices.value}")
+        artistChoices.value = artistChoices.value?.sanitize(library)
+        L.d("Updated artist choices: ${artistChoices.value}")
     }
 
     /**
@@ -70,7 +68,7 @@ class DetailPickerViewModel @Inject constructor(private val musicRepository: Mus
     fun setArtistChoiceUid(itemUid: Music.UID) {
         L.d("Opening navigation choices for $itemUid")
         // Support Songs and Albums, which have parent artists.
-        _artistChoices.value =
+        artistChoices.value =
             when (val music = musicRepository.find(itemUid)) {
                 is Song -> {
                     L.d("Creating navigation choices for song")

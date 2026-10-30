@@ -21,7 +21,6 @@ package org.oxycblt.auxio.playback.queue
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
-import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.RecyclerView
@@ -174,8 +173,10 @@ class QueueSongViewHolder private constructor(private val binding: ItemEditableS
          * @param parent The parent to inflate this instance from.
          * @return A new instance.
          */
-        fun from(parent: View) =
-            QueueSongViewHolder(ItemEditableSongBinding.inflate(parent.context.inflater))
+        fun from(parent: ViewGroup) =
+            QueueSongViewHolder(
+                ItemEditableSongBinding.inflate(parent.context.inflater, parent, false)
+            )
 
         /** A comparator that can be used with DiffUtil. */
         val DIFF_CALLBACK = SongViewHolder.DIFF_CALLBACK

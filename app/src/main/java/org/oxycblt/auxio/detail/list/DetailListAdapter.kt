@@ -89,13 +89,16 @@ abstract class DetailListAdapter(
         val DIFF_CALLBACK =
             object : SimpleDiffCallback<Item>() {
                 override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
-                    return when {
-                        oldItem is PlainDivider && newItem is PlainDivider ->
+                    return when (oldItem) {
+                        is PlainDivider if newItem is PlainDivider ->
                             DividerViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is BasicHeader && newItem is BasicHeader ->
+
+                        is BasicHeader if newItem is BasicHeader ->
                             BasicHeaderViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
-                        oldItem is SortHeader && newItem is SortHeader ->
+
+                        is SortHeader if newItem is SortHeader ->
                             SortHeaderViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
+
                         else -> false
                     }
                 }

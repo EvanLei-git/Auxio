@@ -20,7 +20,6 @@ package org.oxycblt.auxio.playback.ui
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.FrameLayout
 
 /**
@@ -41,6 +40,6 @@ constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         check(childCount == 1) { "This layout should only contain one child" }
-        getChildAt(0).layoutDirection = View.LAYOUT_DIRECTION_LTR
+        getChildAt(0).layoutDirection = LAYOUT_DIRECTION_LTR
     }
 }

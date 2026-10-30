@@ -128,14 +128,16 @@ class PlaylistDetailListAdapter(private val listener: Listener) :
         val DIFF_CALLBACK =
             object : SimpleDiffCallback<Item>() {
                 override fun areContentsTheSame(oldItem: Item, newItem: Item) =
-                    when {
-                        oldItem is Song && newItem is Song ->
+                    when (oldItem) {
+                        is Song if newItem is Song ->
                             PlaylistSongViewHolder.DIFF_CALLBACK.areContentsTheSame(
                                 oldItem,
                                 newItem,
                             )
-                        oldItem is EditHeader && newItem is EditHeader ->
+
+                        is EditHeader if newItem is EditHeader ->
                             EditHeaderViewHolder.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
+
                         else -> DetailListAdapter.DIFF_CALLBACK.areContentsTheSame(oldItem, newItem)
                     }
             }

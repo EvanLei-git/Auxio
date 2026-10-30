@@ -22,6 +22,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -30,6 +31,9 @@ import androidx.car.app.mediaextensions.MetadataExtras
 import androidx.core.app.NotificationCompat
 import androidx.media.app.NotificationCompat.MediaStyle
 import androidx.media.session.MediaButtonReceiver
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import javax.inject.Inject
 import org.oxycblt.auxio.BuildConfig
 import org.oxycblt.auxio.ForegroundListener
@@ -91,9 +95,8 @@ private constructor(
     val token: MediaSessionCompat.Token
         get() = mediaSession.sessionToken
 
-    private val _notification = PlaybackNotification(context, mediaSession.sessionToken)
     val notification: ForegroundServiceNotification
-        get() = _notification
+        field = PlaybackNotification(context, mediaSession.sessionToken)
 
     fun attach() {
         playbackManager.addListener(this)
@@ -168,7 +171,7 @@ private constructor(
 
     override fun onProgressionChanged(progression: Progression) {
         invalidateSessionState()
-        _notification.updatePlaying(playbackManager.progression.isPlaying)
+        notification.updatePlaying(playbackManager.progression.isPlaying)
         if (!bitmapProvider.isBusy) {
             foregroundListener.updateForeground(ForegroundListener.Change.MEDIA_SESSION)
         }
@@ -267,11 +270,24 @@ private constructor(
         }
 
         // We are normally supposed to use URIs for album art, but that removes some of the
-        // nice things we can do like square cropping or high quality covers. Instead,
-        // we load a full-size bitmap into the media session and take the performance hit.
+        // nice things we can do like square cropping (we crop at runtime since it lets us avoid
+        // heavy image processing pipelines) or high quality covers (the default lower downsamples
+        // much more than the runtime bitmap downsampler). Instead, we load a full-size bitmap into
+        // the media session and take the performance hit.
         bitmapProvider.load(
             song,
             object : BitmapProvider.Target {
+                override fun onConfigRequest(builder: ImageRequest.Builder): ImageRequest.Builder =
+                    // Android 17 optimized cover downsampling which accidentally made it so that
+                    // hardware bitmap covers would actually crash it. Fix this by manually
+                    // downsampling to whatever the system imagines, as disabling hardware bitmaps
+                    // trashes performance. If I remember correctly this is somehow still higher
+                    // quality than the URI loading.
+                    builder
+                        .size(MediaSessionCompat.getBitmapDimensionLimit())
+                        .memoryCachePolicy(CachePolicy.READ_ONLY)
+                        .allowHardware(Build.VERSION.SDK_INT < 37)
+
                 override fun onCompleted(bitmap: Bitmap?) {
                     L.d("Bitmap loaded, applying media session and posting notification")
                     if (bitmap != null) {
@@ -280,7 +296,7 @@ private constructor(
                     }
                     val metadata = builder.build()
                     mediaSession.setMetadata(metadata)
-                    _notification.updateMetadata(metadata)
+                    notification.updateMetadata(metadata)
                     foregroundListener.updateForeground(ForegroundListener.Change.MEDIA_SESSION)
                 }
             },
@@ -293,17 +309,16 @@ private constructor(
      * @param queue The current queue to upload.
      */
     private fun updateQueue(queue: List<Song>) {
-        val queueItems =
-            queue.mapIndexed { i, song ->
-                val description =
-                    song.toMediaDescription(
-                        context,
-                        { putInt(MediaSessionInterface.KEY_QUEUE_POS, i) },
-                    )
-                // Store the item index so we can then use the analogous index in the
-                // playback state.
-                MediaSessionCompat.QueueItem(description, i.toLong())
-            }
+        val queueItems = queue.mapIndexed { i, song ->
+            val description =
+                song.toMediaDescription(
+                    context,
+                    { putInt(MediaSessionInterface.KEY_QUEUE_POS, i) },
+                )
+            // Store the item index so we can then use the analogous index in the
+            // playback state.
+            MediaSessionCompat.QueueItem(description, i.toLong())
+        }
         L.d("Uploading ${queueItems.size} songs to MediaSession queue")
         mediaSession.setQueue(queueItems)
     }
@@ -354,8 +369,8 @@ private constructor(
         L.d("Invalidating notification actions")
         invalidateSessionState()
 
-        _notification.updateRepeatMode(playbackManager.repeatMode)
-        _notification.updateShuffled(playbackManager.isShuffled)
+        notification.updateRepeatMode(playbackManager.repeatMode)
+        notification.updateShuffled(playbackManager.isShuffled)
 
         if (!bitmapProvider.isBusy) {
             L.d("Not loading a bitmap, post the notification")
@@ -510,7 +525,7 @@ private class PlaybackNotification(
                 nameRes = R.string.lbl_playback,
             )
 
-        /** Cached 1x1 transparent bitmap. */
-        private val EMPTY_BITMAP: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+        /** Cached 2x2 transparent bitmap. 2x2 to stop palette extraction blowing up the app */
+        private val EMPTY_BITMAP: Bitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
     }
 }

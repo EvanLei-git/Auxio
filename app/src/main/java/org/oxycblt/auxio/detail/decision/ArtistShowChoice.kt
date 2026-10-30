@@ -19,11 +19,11 @@
 package org.oxycblt.auxio.detail.decision
 
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import org.oxycblt.auxio.databinding.ItemPickerChoiceBinding
 import org.oxycblt.auxio.list.ClickableListListener
 import org.oxycblt.auxio.list.adapter.FlexibleListAdapter
 import org.oxycblt.auxio.list.adapter.SimpleDiffCallback
-import org.oxycblt.auxio.list.recycler.DialogRecyclerView
 import org.oxycblt.auxio.music.resolve
 import org.oxycblt.auxio.util.context
 import org.oxycblt.auxio.util.inflater
@@ -48,14 +48,14 @@ class ArtistShowChoice(private val listener: ClickableListListener<Artist>) :
 }
 
 /**
- * A [DialogRecyclerView.ViewHolder] that displays a smaller variant of a typical [Artist] item, for
- * use [ArtistShowChoice]. Use [from] to create an instance.
+ * A [RecyclerView.ViewHolder] that displays a smaller variant of a typical [Artist] item, for use
+ * [ArtistShowChoice]. Use [from] to create an instance.
  *
  * @author Alexander Capehart (OxygenCobalt)
  */
 class ArtistNavigationChoiceViewHolder
 private constructor(private val binding: ItemPickerChoiceBinding) :
-    DialogRecyclerView.ViewHolder(binding.root) {
+    RecyclerView.ViewHolder(binding.root) {
     /**
      * Bind new data to this instance.
      *
