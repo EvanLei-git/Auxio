@@ -22,8 +22,10 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
+import androidx.appcompat.R as AR
 import androidx.appcompat.view.SupportMenuInflater
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.view.MenuItemCompat
 import androidx.core.view.children
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +35,7 @@ import org.oxycblt.auxio.list.ListViewModel
 import org.oxycblt.auxio.list.adapter.UpdateInstructions
 import org.oxycblt.auxio.ui.ViewBindingBottomSheetDialogFragment
 import org.oxycblt.auxio.util.collectImmediately
+import org.oxycblt.auxio.util.getAttrColorCompat
 import timber.log.Timber as L
 
 /**
@@ -57,6 +60,20 @@ abstract class MenuDialogFragment<M : Menu> :
      * @param menu The currently-shown menu [M].
      */
     abstract fun getDisabledItemIds(menu: M): Set<Int>
+
+    /**
+     * Get the options to hide entirely in the context of the currently shown [M].
+     *
+     * @param menu The currently-shown menu [M].
+     */
+    open fun getHiddenItemIds(menu: M): Set<Int> = setOf()
+
+    /**
+     * Get the options that permanently destroy data, which are shown in a warning color.
+     *
+     * @param menu The currently-shown menu [M].
+     */
+    open fun getDestructiveItemIds(menu: M): Set<Int> = setOf()
 
     /**
      * Update the displayed information about the currently shown [M].
@@ -118,13 +135,21 @@ abstract class MenuDialogFragment<M : Menu> :
         @SuppressLint("RestrictedApi") val builder = MenuBuilder(requireContext())
         SupportMenuInflater(requireContext()).inflate(casted.res, builder)
 
-        // Disable any menu options as specified by the impl
+        // Hide, disable, or mark as destructive any menu options as specified by the impl
+        val hiddenIds = getHiddenItemIds(casted)
         val disabledIds = getDisabledItemIds(casted)
+        val destructiveIds = getDestructiveItemIds(casted)
+        val warningColor = requireContext().getAttrColorCompat(AR.attr.colorError)
         val visible =
-            builder.children.mapTo(mutableListOf()) {
-                it.isEnabled = !disabledIds.contains(it.itemId)
-                it
-            }
+            builder.children
+                .filterNot { hiddenIds.contains(it.itemId) }
+                .mapTo(mutableListOf()) {
+                    it.isEnabled = !disabledIds.contains(it.itemId)
+                    if (destructiveIds.contains(it.itemId)) {
+                        MenuItemCompat.setIconTintList(it, warningColor)
+                    }
+                    it
+                }
         menuAdapter.update(visible, UpdateInstructions.Diff)
 
         // Delegate to impl how to show music

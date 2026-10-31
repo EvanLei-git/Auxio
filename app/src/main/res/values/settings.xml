@@ -50,6 +50,7 @@
     <string name="set_key_search_filters" translatable="false">auxio_search_filters</string>
 
     <string name="set_key_task_exit" translatable="false">auxio_task_exit</string>
+    <string name="set_key_song_deletion" translatable="false">auxio_song_deletion</string>
 
     <string name="set_key_songs_sort" translatable="false">auxio_songs_sort</string>
     <string name="set_key_albums_sort" translatable="false">auxio_albums_sort</string>

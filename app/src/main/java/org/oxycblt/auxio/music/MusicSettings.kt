@@ -64,6 +64,9 @@ interface MusicSettings : Settings<MusicSettings.Listener> {
     /** Whether to use the file-system cache for improved loading times. */
     val useFileTreeCache: Boolean
 
+    /** Whether the experimental option to delete song files from the device is shown. */
+    val songDeletion: Boolean
+
     fun forceLocationUpdate()
 
     interface Listener {
@@ -112,6 +115,9 @@ class MusicSettingsImpl @Inject constructor(@ApplicationContext private val cont
 
     override val useFileTreeCache: Boolean
         get() = sharedPreferences.getBoolean(getString(R.string.set_key_fs_cache), false)
+
+    override val songDeletion: Boolean
+        get() = sharedPreferences.getBoolean(getString(R.string.set_key_song_deletion), false)
 
     override var locationMode: LocationMode
         get() {

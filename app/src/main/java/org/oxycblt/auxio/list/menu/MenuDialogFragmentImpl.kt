@@ -23,10 +23,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.DialogMenuBinding
 import org.oxycblt.auxio.detail.DetailViewModel
 import org.oxycblt.auxio.list.ListViewModel
+import org.oxycblt.auxio.music.MusicSettings
 import org.oxycblt.auxio.music.MusicViewModel
 import org.oxycblt.auxio.music.resolve
 import org.oxycblt.auxio.music.resolveNames
@@ -53,12 +55,20 @@ class SongMenuDialogFragment : MenuDialogFragment<Menu.ForSong>() {
     private val musicModel: MusicViewModel by activityViewModels()
     private val playbackModel: PlaybackViewModel by activityViewModels()
     private val args: SongMenuDialogFragmentArgs by navArgs()
+    @Inject lateinit var musicSettings: MusicSettings
 
     override val parcel
         get() = args.parcel
 
     // Nothing to disable in song menus.
     override fun getDisabledItemIds(menu: Menu.ForSong) = setOf<Int>()
+
+    // Song deletion is experimental and must be enabled in settings.
+    override fun getHiddenItemIds(menu: Menu.ForSong) =
+        if (musicSettings.songDeletion) setOf() else setOf(R.id.action_delete)
+
+    // Deleting a song removes the file itself, so make it stand out from the other options.
+    override fun getDestructiveItemIds(menu: Menu.ForSong) = setOf(R.id.action_delete)
 
     override fun updateMenu(binding: DialogMenuBinding, menu: Menu.ForSong) {
         val context = requireContext()

@@ -51,5 +51,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/set_experimental">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="@string/set_key_song_deletion"
+            app:summary="@string/set_song_deletion_desc"
+            app:title="@string/set_song_deletion" />
+
+    </PreferenceCategory>
+
 
 </PreferenceScreen>

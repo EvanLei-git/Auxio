@@ -20,11 +20,15 @@ package org.oxycblt.auxio.list.menu
 
 import android.view.MenuItem
 import android.view.ViewGroup
+import androidx.core.view.MenuItemCompat
+import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import org.oxycblt.auxio.R
 import org.oxycblt.auxio.databinding.ItemMenuOptionBinding
 import org.oxycblt.auxio.list.ClickableListListener
 import org.oxycblt.auxio.list.adapter.FlexibleListAdapter
+import org.oxycblt.auxio.util.getColorCompat
 import org.oxycblt.auxio.util.inflater
 
 /**
@@ -62,6 +66,14 @@ class MenuItemViewHolder private constructor(private val binding: ItemMenuOption
             text = item.title
             setCompoundDrawablesRelativeWithIntrinsicBounds(item.icon, null, null, null)
             isEnabled = item.isEnabled
+            // Items with their own tint (ex. destructive options) use it for the text too.
+            // Otherwise restore the defaults, since this view may have been recycled.
+            val tint = MenuItemCompat.getIconTintList(item)
+            setTextColor(tint ?: context.getColorCompat(R.color.sel_selectable_text_primary))
+            TextViewCompat.setCompoundDrawableTintList(
+                this,
+                tint ?: context.getColorCompat(R.color.sel_activatable_icon),
+            )
         }
     }
 

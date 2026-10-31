@@ -93,6 +93,7 @@
     <string name="lbl_rename">Rename</string>
     <string name="lbl_rename_playlist">Rename playlist</string>
     <string name="lbl_delete">Delete</string>
+    <string name="lbl_delete_from_device">Delete from device</string>
     <string name="lbl_confirm_delete_playlist">Delete playlist?</string>
     <string name="lbl_confirm_delete_song">Delete song?</string>
     <string name="lbl_apply">Apply</string>
@@ -269,6 +270,9 @@
     <string name="set_keep_shuffle_desc">Keep shuffle on when playing a new song</string>
     <string name="set_task_exit">Always exit on close</string>
     <string name="set_task_exit_desc">Stop playback when removed from recents, even if playing</string>
+    <string name="set_experimental">Experimental</string>
+    <string name="set_song_deletion">Delete songs</string>
+    <string name="set_song_deletion_desc">Show a delete option in song menus that permanently removes the file from your device. May not work on every device</string>
 
     <string name="set_content">Content</string>
     <string name="set_content_desc">Control how music and images are loaded</string>
