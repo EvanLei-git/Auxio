@@ -18,10 +18,13 @@
 
 package org.oxycblt.auxio.music.decision
 
+import android.Manifest
 import android.app.Activity
 import android.app.RecoverableSecurityException
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -29,6 +32,7 @@ import android.view.LayoutInflater
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -68,6 +72,17 @@ class DeleteSongDialog : ViewBindingMaterialDialogFragment<DialogDeleteSongBindi
             findNavController().navigateUp()
         }
 
+    private val writePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            val song = pickerModel.currentSongToDelete.value
+            if (isGranted && song != null) {
+                deleteFromMediaStore(song)
+            } else {
+                L.w("Storage write permission denied, cannot delete song")
+                finishDelete(false)
+            }
+        }
+
     override fun onConfigDialog(builder: AlertDialog.Builder) {
         builder
             .setTitle(R.string.lbl_confirm_delete_song)
@@ -93,6 +108,8 @@ class DeleteSongDialog : ViewBindingMaterialDialogFragment<DialogDeleteSongBindi
         // Confirm button starts disabled until the user types the required word
         applyButton.isEnabled = false
         applyButton.setOnClickListener {
+            // Prevent a second tap from starting another deletion while this one runs
+            applyButton.isEnabled = false
             performDelete(unlikelyToBeNull(pickerModel.currentSongToDelete.value))
         }
 
@@ -123,45 +140,86 @@ class DeleteSongDialog : ViewBindingMaterialDialogFragment<DialogDeleteSongBindi
 
     private fun performDelete(song: Song) {
         val contentResolver = requireContext().contentResolver
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val pendingIntent = MediaStore.createDeleteRequest(contentResolver, listOf(song.uri))
-            deleteMediaLauncher.launch(IntentSenderRequest.Builder(pendingIntent).build())
+        // Songs loaded through the system file picker (the default location mode) have SAF
+        // document URIs, which MediaStore refuses. Auxio already holds persistent write access
+        // to those folders, so the document can be deleted directly.
+        if (DocumentsContract.isDocumentUri(requireContext(), song.uri)) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                val deleted =
+                    try {
+                        DocumentsContract.deleteDocument(contentResolver, song.uri)
+                    } catch (e: Exception) {
+                        L.e("Failed to delete song document: $e")
+                        false
+                    }
+                withContext(Dispatchers.Main) { finishDelete(deleted) }
+            }
             return
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val pendingIntent =
+                    MediaStore.createDeleteRequest(contentResolver, listOf(song.uri))
+                deleteMediaLauncher.launch(IntentSenderRequest.Builder(pendingIntent).build())
+            } catch (e: Exception) {
+                L.e("Failed to request song deletion: $e")
+                finishDelete(false)
+            }
+            return
+        }
+        // Android 8-9 do not grant write access alongside the read access Auxio already has, so
+        // MediaStore will refuse the deletion unless it is requested separately.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            ) != PackageManager.PERMISSION_GRANTED) {
+            writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            return
+        }
+        deleteFromMediaStore(song)
+    }
+
+    private fun deleteFromMediaStore(song: Song) {
+        val contentResolver = requireContext().contentResolver
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    try {
-                        contentResolver.delete(song.uri, null, null)
-                    } catch (e: SecurityException) {
-                        val recoverable = e as? RecoverableSecurityException
-                        if (recoverable != null) {
-                            withContext(Dispatchers.Main) {
-                                deleteMediaLauncher.launch(
-                                    IntentSenderRequest.Builder(
-                                        recoverable.userAction.actionIntent.intentSender
-                                    ).build()
-                                )
+                val deleted =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        try {
+                            contentResolver.delete(song.uri, null, null) > 0
+                        } catch (e: SecurityException) {
+                            val recoverable = e as? RecoverableSecurityException
+                            if (recoverable != null) {
+                                withContext(Dispatchers.Main) {
+                                    deleteMediaLauncher.launch(
+                                        IntentSenderRequest.Builder(
+                                            recoverable.userAction.actionIntent.intentSender
+                                        ).build()
+                                    )
+                                }
+                                return@launch
                             }
-                            return@launch
+                            throw e
                         }
-                        throw e
+                    } else {
+                        contentResolver.delete(song.uri, null, null) > 0
                     }
-                } else {
-                    contentResolver.delete(song.uri, null, null)
-                }
-                withContext(Dispatchers.Main) {
-                    musicModel.refresh()
-                    requireContext().showToast(R.string.lng_song_deleted)
-                    findNavController().navigateUp()
-                }
+                withContext(Dispatchers.Main) { finishDelete(deleted) }
             } catch (e: Exception) {
                 L.e("Failed to delete song: $e")
-                withContext(Dispatchers.Main) {
-                    requireContext().showToast(R.string.err_delete_song_failed)
-                    findNavController().navigateUp()
-                }
+                withContext(Dispatchers.Main) { finishDelete(false) }
             }
         }
+    }
+
+    private fun finishDelete(deleted: Boolean) {
+        if (deleted) {
+            musicModel.refresh()
+            requireContext().showToast(R.string.lng_song_deleted)
+        } else {
+            requireContext().showToast(R.string.err_delete_song_failed)
+        }
+        findNavController().navigateUp()
     }
 }
