@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+ 
 package org.oxycblt.auxio.music.decision
 
 import android.Manifest
@@ -113,16 +113,31 @@ class DeleteSongDialog : ViewBindingMaterialDialogFragment<DialogDeleteSongBindi
             performDelete(unlikelyToBeNull(pickerModel.currentSongToDelete.value))
         }
 
-        requireBinding().deletionConfirmInput.addTextChangedListener(
-            object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-                override fun afterTextChanged(s: Editable?) {
-                    val confirmWord = getString(R.string.lbl_delete_confirm_word)
-                    applyButton.isEnabled = s?.toString()?.trim()?.equals(confirmWord, ignoreCase = true) == true
+        requireBinding()
+            .deletionConfirmInput
+            .addTextChangedListener(
+                object : TextWatcher {
+                    override fun beforeTextChanged(
+                        s: CharSequence?,
+                        start: Int,
+                        count: Int,
+                        after: Int,
+                    ) = Unit
+
+                    override fun onTextChanged(
+                        s: CharSequence?,
+                        start: Int,
+                        before: Int,
+                        count: Int,
+                    ) = Unit
+
+                    override fun afterTextChanged(s: Editable?) {
+                        val confirmWord = getString(R.string.lbl_delete_confirm_word)
+                        applyButton.isEnabled =
+                            s?.toString()?.trim()?.equals(confirmWord, ignoreCase = true) == true
+                    }
                 }
-            }
-        )
+            )
     }
 
     private fun updateSongToDelete(song: Song?) {
@@ -169,11 +184,13 @@ class DeleteSongDialog : ViewBindingMaterialDialogFragment<DialogDeleteSongBindi
         }
         // Android 8-9 do not grant write access alongside the read access Auxio already has, so
         // MediaStore will refuse the deletion unless it is requested separately.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            ) != PackageManager.PERMISSION_GRANTED) {
+        if (
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                ) != PackageManager.PERMISSION_GRANTED
+        ) {
             writePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             return
         }
@@ -194,8 +211,9 @@ class DeleteSongDialog : ViewBindingMaterialDialogFragment<DialogDeleteSongBindi
                                 withContext(Dispatchers.Main) {
                                     deleteMediaLauncher.launch(
                                         IntentSenderRequest.Builder(
-                                            recoverable.userAction.actionIntent.intentSender
-                                        ).build()
+                                                recoverable.userAction.actionIntent.intentSender
+                                            )
+                                            .build()
                                     )
                                 }
                                 return@launch
